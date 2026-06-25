@@ -37,7 +37,7 @@ const DevOpsStack = () => {
         <section ref={sectionRef} className="relative w-full h-screen pointer-events-none snap-start overflow-hidden flex items-center">
 
             {/* ИЗМЕНЕНО: md:-right-8 сдвигает контейнер правее, max-w-2xl дает ширину */}
-            <div className="absolute left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:-right-8 lg:-right-12 top-1/2 -translate-y-1/2 z-20 w-[90%] max-w-sm md:max-w-2xl pointer-events-auto md:pr-16">
+            <div className="absolute left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:-right-8 lg:-right-12 top-[42%] md:top-1/2 -translate-y-1/2 z-20 w-[90%] max-w-sm md:max-w-2xl pointer-events-auto scale-[0.85] md:scale-100 md:pr-16">
 
                 {/* Обертка для анимации */}
                 <div className={`transition-all duration-1000 ease-out ${getAnimClasses('delay-300')}`}>

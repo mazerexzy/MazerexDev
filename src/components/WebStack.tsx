@@ -17,7 +17,7 @@ const WebStack = () => {
                     }
                 }
             },
-            { threshold: 0.4 } 
+            { threshold: 0.4 }
         );
 
         if (sectionRef.current) {
@@ -38,17 +38,17 @@ const WebStack = () => {
 
             {/* ПРАВАЯ ЧАСТЬ (Web Development) - СПРАВА */}
             {/* ИЗМЕНЕНИЕ ЗДЕСЬ: поменяли md:max-w-xl на md:max-w-2xl */}
-            <div className="absolute left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-16 top-1/2 -translate-y-1/2 z-20 w-[90%] max-w-sm md:max-w-2xl pointer-events-auto">
+            <div className="absolute left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-16 top-[42%] md:top-1/2 -translate-y-1/2 z-20 w-[90%] max-w-sm md:max-w-2xl pointer-events-auto scale-[0.85] md:scale-100">
                 <div className={`transition-all duration-1000 ease-out ${getAnimClasses('delay-300')}`}>
-                    
+
                     <h2 className="text-4xl md:text-5xl font-gdblack text-white leading-tight [text-shadow:-0.5px_0.5px_0px_#8A2BE2,_-1px_1px_0px_#FF1493,_-1.5px_1.5px_0px_#FF0000]">
                         Web <br /> Development.
                     </h2>
-                    
+
                     <p className="mt-6 text-sm md:text-base text-white font-gdmed leading-relaxed">
                         I create fast, secure and scalable websites and web applications. I can take care of the frontend, backend, database, server, API, security, optimization, and everything in between. I have experience with a wide range of technologies and frameworks, and I can adapt to any project requirements.
                     </p>
-                    
+
                 </div>
             </div>
 

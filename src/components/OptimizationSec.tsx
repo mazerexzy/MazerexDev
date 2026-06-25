@@ -36,7 +36,7 @@ const OptimizationSec = () => {
     return (
         <section ref={sectionRef} className="relative w-full h-screen pointer-events-none snap-start overflow-hidden flex items-center">
 
-            <div className="absolute left-1/2 -translate-x-1/2 md:translate-x-0 md:left-12 lg:left-24 top-1/2 -translate-y-1/2 z-20 w-[90%] max-w-sm md:max-w-3xl pointer-events-auto">
+            <div className="absolute left-1/2 -translate-x-1/2 md:translate-x-0 md:left-12 lg:left-24 top-[42%] md:top-1/2 -translate-y-1/2 z-20 w-[90%] max-w-sm md:max-w-3xl pointer-events-auto scale-[0.85] md:scale-100">
 
                 <div className={`transition-all duration-1000 ease-out ${getAnimClasses('delay-300')}`}>
 
