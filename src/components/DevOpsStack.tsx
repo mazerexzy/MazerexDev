@@ -17,7 +17,7 @@ const DevOpsStack = () => {
                     }
                 }
             },
-            { threshold: 0.4 } 
+            { threshold: 0.4 }
         );
 
         if (sectionRef.current) {
@@ -35,13 +35,13 @@ const DevOpsStack = () => {
 
     return (
         <section ref={sectionRef} className="relative w-full h-screen pointer-events-none snap-start overflow-hidden flex items-center">
-            
+
             {/* ИЗМЕНЕНО: md:-right-8 сдвигает контейнер правее, max-w-2xl дает ширину */}
-            <div className="absolute right-4 md:-right-8 lg:-right-12 top-1/2 -translate-y-1/2 z-20 w-full max-w-sm md:max-w-2xl pointer-events-auto pr-4 md:pr-16">
-                
+            <div className="absolute left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:-right-8 lg:-right-12 top-1/2 -translate-y-1/2 z-20 w-[90%] max-w-sm md:max-w-2xl pointer-events-auto md:pr-16">
+
                 {/* Обертка для анимации */}
                 <div className={`transition-all duration-1000 ease-out ${getAnimClasses('delay-300')}`}>
-                    
+
                     {/* ИЗМЕНЕНО: текст стал md:text-6xl */}
                     <h2 className="text-5xl md:text-6xl font-gdblack text-white leading-tight [text-shadow:-0.5px_0.5px_0px_#8A2BE2,_-1px_1px_0px_#FF1493,_-1.5px_1.5px_0px_#FF0000]">
                         DevOps & <br /> Server-side.
@@ -53,7 +53,7 @@ const DevOpsStack = () => {
                     </p>
 
                 </div>
-                
+
             </div>
         </section>
     );

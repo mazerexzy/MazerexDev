@@ -27,11 +27,11 @@ const Hero = ({ isImpacted }: { isImpacted: boolean }) => {
     return (
         <section className="relative w-full h-screen bg-transparent flex items-center justify-center snap-start">
 
-            <div 
-                className={`relative z-10 flex flex-col items-center justify-center pointer-events-none select-none transition-all duration-1000 ease-out
-                ${isScrolledOut ? 'opacity-0 blur-md -translate-y-32' : 'opacity-100 blur-0 translate-y-0'}`}
+            <div
+                className={`relative z-10 flex flex-col items-center justify-center pointer-events-none select-none transition-all duration-1000 ease-out w-full scale-90 md:scale-100
+  ${isScrolledOut ? 'opacity-0 blur-md -translate-y-32' : 'opacity-100 blur-0 translate-y-0'}`}
             >
-                
+
                 <h1 className={`relative z-20 text-7xl md:text-8xl font-gdblack uppercase tracking-wider 
                     bg-[linear-gradient(to_right,#8A2BE2,#FF1493,#FF0000,#FFA500,#FFFF00)] text-transparent bg-clip-text drop-shadow-[0_0_15px_rgba(255,0,255,0.4)]
                     ${phase === 0 ? 'opacity-0 scale-50 translate-y-0 transition-none' : ''}

@@ -17,7 +17,7 @@ const OptimizationSec = () => {
                     }
                 }
             },
-            { threshold: 0.4 } 
+            { threshold: 0.4 }
         );
 
         if (sectionRef.current) {
@@ -35,11 +35,11 @@ const OptimizationSec = () => {
 
     return (
         <section ref={sectionRef} className="relative w-full h-screen pointer-events-none snap-start overflow-hidden flex items-center">
-            
-            <div className="absolute left-4 md:left-12 lg:left-24 top-1/2 -translate-y-1/2 z-20 w-full max-w-sm md:max-w-3xl pointer-events-auto pr-4 md:pr-0">
-                
+
+            <div className="absolute left-1/2 -translate-x-1/2 md:translate-x-0 md:left-12 lg:left-24 top-1/2 -translate-y-1/2 z-20 w-[90%] max-w-sm md:max-w-3xl pointer-events-auto">
+
                 <div className={`transition-all duration-1000 ease-out ${getAnimClasses('delay-300')}`}>
-                    
+
                     <h2 className="text-5xl md:text-7xl font-gdblack text-white leading-tight [text-shadow:-0.5px_0.5px_0px_#8A2BE2,_-1px_1px_0px_#FF1493,_-1.5px_1.5px_0px_#FF0000]">
                         Optimization & <br />  Security.
                     </h2>

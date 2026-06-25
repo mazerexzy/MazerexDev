@@ -45,7 +45,7 @@ const FullChaos = () => {
     return (
         <section ref={sectionRef} className="relative w-full h-screen pointer-events-none snap-start overflow-hidden flex flex-col items-center justify-center">
 
-            <div className={`transition-all duration-1000 ease-out z-20 flex flex-col items-center pointer-events-auto ${getAnimClasses('delay-300')}`}>
+            <div className={`transition-all duration-1000 ease-out z-20 flex flex-col items-center w-full px-4 md:px-0 pointer-events-auto ${getAnimClasses('delay-300')}`}>
 
                 <h2 className="text-5xl md:text-6xl font-gdblack text-white leading-tight text-center mb-10 tracking-tight [text-shadow:0px_0px_20px_rgba(255,0,255,0.5)]">
                     Full stack, full chaos ↯

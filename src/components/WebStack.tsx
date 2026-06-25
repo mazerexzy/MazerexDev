@@ -38,7 +38,7 @@ const WebStack = () => {
 
             {/* ПРАВАЯ ЧАСТЬ (Web Development) - СПРАВА */}
             {/* ИЗМЕНЕНИЕ ЗДЕСЬ: поменяли md:max-w-xl на md:max-w-2xl */}
-            <div className="absolute right-6 md:right-16 top-1/2 -translate-y-1/2 z-20 w-full max-w-sm md:max-w-2xl pointer-events-auto">
+            <div className="absolute left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-16 top-1/2 -translate-y-1/2 z-20 w-[90%] max-w-sm md:max-w-2xl pointer-events-auto">
                 <div className={`transition-all duration-1000 ease-out ${getAnimClasses('delay-300')}`}>
                     
                     <h2 className="text-4xl md:text-5xl font-gdblack text-white leading-tight [text-shadow:-0.5px_0.5px_0px_#8A2BE2,_-1px_1px_0px_#FF1493,_-1.5px_1.5px_0px_#FF0000]">
