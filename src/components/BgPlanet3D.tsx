@@ -22,7 +22,7 @@ function RetroLaptop({ scrollProgress, isMobile }: { scrollProgress: number, isM
         const targetScale = (sp1 * baseScale) - (sp2 * baseScale);
         laptopRef.current.scale.set(targetScale, targetScale, targetScale);
 
-        const targetX = isMobile ? 0 : 2;
+        const targetX = isMobile ? 2 : 2;
         const targetY = isMobile ? -1.0 : -1.2;
 
         laptopRef.current.position.y = THREE.MathUtils.lerp(-12, targetY, sp1) - (sp2 * 10);

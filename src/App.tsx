@@ -12,6 +12,7 @@ import FullChaos from "./components/FullChaos";
 import useSound from 'use-sound';
 import scrollSound from "./assets/sounds/scroll.mp3";
 import SoundToggle from "./components/SoundToggle";
+import bgmSound1 from "./assets/sounds/Aphex Twin - Heliosphan (SPOTISAVER).mp3";
 
 function App() {
   const [startHero, setStartHero] = useState(false);
@@ -35,6 +36,11 @@ function App() {
     },
   });
 
+  const [playBgm1] = useSound(bgmSound1, { 
+    volume: 0.02, // Ставим громкость 15%, чтобы не оглушить юзера (настрой под себя)
+    loop: true,   // Музыка будет играть бесконечно по кругу
+  });
+
   // Состояние: мобилка это или нет (меньше 768px ширина)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -49,6 +55,12 @@ function App() {
   useEffect(() => {
     playScrollRef.current = playScroll;
   }, [playScroll]);
+
+  useEffect(() => {
+    if (startHero) {
+      playBgm1();
+    }
+  }, [startHero, playBgm1]);
 
   // НОВЫЙ USEEFFECT: Обновляем стейт currentSection при любом скролле
   useEffect(() => {
