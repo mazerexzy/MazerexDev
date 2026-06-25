@@ -109,6 +109,7 @@ function App() {
     }
     requestAnimationFrame(raf);
 
+    // --- ДЕСКТОП: ОБРАБОТКА КОЛЕСИКА МЫШИ ---
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
 
@@ -130,10 +131,54 @@ function App() {
       }
     };
 
+    // --- МОБИЛКИ: ОБРАБОТКА СВАЙПОВ ---
+    let touchStartY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      // Запоминаем координату Y, где палец коснулся экрана
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      // КРИТИЧЕСКИ ВАЖНО: Глушим нативный мобильный скролл
+      // Это не даст экрану застревать между секциями
+      e.preventDefault();
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (isScrollingAnimatingRef.current || cooldownRef.current) return;
+
+      const touchEndY = e.changedTouches[0].clientY;
+      const deltaY = touchStartY - touchEndY; // Вычисляем длину и направление свайпа
+
+      // Порог в 50px (чтобы легкое дрожание пальца не переключало секцию)
+      if (Math.abs(deltaY) > 50) {
+        const currentIndex = Math.round(window.scrollY / window.innerHeight);
+        const totalSections = 6;
+
+        if (deltaY > 0 && currentIndex < totalSections - 1) {
+          // Свайпнули вверх (хотим листать вниз)
+          playScrollRef.current({ id: 'trimmedClick' });
+          scrollToSection(currentIndex + 1);
+        } else if (deltaY < 0 && currentIndex > 0) {
+          // Свайпнули вниз (хотим листать вверх)
+          playScrollRef.current({ id: 'trimmedClick' });
+          scrollToSection(currentIndex - 1);
+        }
+      }
+    };
+
+    // Вешаем слушатели событий (passive: false нужно, чтобы работал preventDefault)
     window.addEventListener('wheel', handleWheel, { passive: false, capture: true });
+    window.addEventListener('touchstart', handleTouchStart, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd, { passive: false });
 
     return () => {
       window.removeEventListener('wheel', handleWheel, { capture: true });
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
       lenisRef.current?.destroy();
     };
   }, []);
