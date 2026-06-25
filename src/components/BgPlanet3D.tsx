@@ -8,30 +8,30 @@ import quakeSound from '../assets/sounds/quake.mp3';
 // --- КОМПОНЕНТ 1: РЕТРО ЛЭПТОП ---
 function RetroLaptop({ scrollProgress, isMobile }: { scrollProgress: number, isMobile: boolean }) {
     const laptopRef = useRef<THREE.Group>(null);
-    const lidRef = useRef<THREE.Group>(null); 
-    const smoothProgress = useRef(0); 
+    const lidRef = useRef<THREE.Group>(null);
+    const smoothProgress = useRef(0);
 
     useFrame((state) => {
         if (!laptopRef.current || !lidRef.current) return;
         smoothProgress.current = THREE.MathUtils.lerp(smoothProgress.current, scrollProgress, 0.04);
-        
+
         const sp1 = Math.min(smoothProgress.current, 1);
         const sp2 = Math.max(0, smoothProgress.current - 1);
-        
+
         const baseScale = isMobile ? 1.0 : 1.5;
         const targetScale = (sp1 * baseScale) - (sp2 * baseScale);
         laptopRef.current.scale.set(targetScale, targetScale, targetScale);
-        
-        const targetX = isMobile ? 0 : 2; 
-        const targetY = isMobile ? 1.5 : -1.2; 
 
-        laptopRef.current.position.y = THREE.MathUtils.lerp(-12, targetY, sp1) - (sp2 * 10); 
-        laptopRef.current.position.x = THREE.MathUtils.lerp(-15, targetX, sp1);    
-        
+        const targetX = isMobile ? 0 : 2;
+        const targetY = isMobile ? 1.5 : -1.2;
+
+        laptopRef.current.position.y = THREE.MathUtils.lerp(-12, targetY, sp1) - (sp2 * 10);
+        laptopRef.current.position.x = THREE.MathUtils.lerp(-15, targetX, sp1);
+
         laptopRef.current.position.y += Math.sin(state.clock.elapsedTime * 1.8) * 0.08;
         laptopRef.current.rotation.z = Math.cos(state.clock.elapsedTime * 1.5) * 0.02;
 
-        laptopRef.current.rotation.y = THREE.MathUtils.lerp(-Math.PI / 4, 0, sp1); 
+        laptopRef.current.rotation.y = THREE.MathUtils.lerp(-Math.PI / 4, 0, sp1);
         laptopRef.current.rotation.x = THREE.MathUtils.lerp(0.5, 0.15, sp1);
 
         lidRef.current.rotation.x = THREE.MathUtils.lerp(Math.PI / 2, 0, sp1);
@@ -42,7 +42,7 @@ function RetroLaptop({ scrollProgress, isMobile }: { scrollProgress: number, isM
             <mesh position={[0, 0, 0]}><boxGeometry args={[4.0, 0.2, 3.0]} /><meshBasicMaterial color="#9370DB" wireframe /></mesh>
             <mesh position={[0, 0.1, 0.2]}><boxGeometry args={[3.6, 0.05, 1.8]} /><meshBasicMaterial color="#4B0082" wireframe /></mesh>
             <group position={[-1.6, 0.15, -0.6]}>
-                {Array.from({ length: 5 }).map((_, row) => 
+                {Array.from({ length: 5 }).map((_, row) =>
                     Array.from({ length: 14 }).map((_, col) => (
                         <mesh key={`${row}-${col}`} position={[col * 0.24, 0, row * 0.25]}><boxGeometry args={[0.2, 0.02, 0.2]} /><meshBasicMaterial color="#00FFFF" wireframe /></mesh>
                     ))
@@ -55,7 +55,7 @@ function RetroLaptop({ scrollProgress, isMobile }: { scrollProgress: number, isM
                 <mesh position={[0, 1.3, 0.06]}><planeGeometry args={[3.8, 2.4]} /><meshBasicMaterial color="#00FFFF" transparent opacity={0.15} side={THREE.DoubleSide} /></mesh>
                 <group position={[-1.7, 2.2, 0.07]}>
                     {Array.from({ length: 7 }).map((_, i) => {
-                        const w = Math.random() * 2 + 0.5; 
+                        const w = Math.random() * 2 + 0.5;
                         return (<mesh key={i} position={[w / 2, -i * 0.3, 0]}><planeGeometry args={[w, 0.06]} /><meshBasicMaterial color="#FF0080" transparent opacity={0.7} /></mesh>);
                     })}
                 </group>
@@ -84,19 +84,19 @@ function RetroPhone({ scrollProgress, isMobile }: { scrollProgress: number, isMo
     useFrame((state) => {
         if (!phoneRef.current) return;
         smoothProgress.current = THREE.MathUtils.lerp(smoothProgress.current, scrollProgress, 0.04);
-        const sp2 = Math.max(0, Math.min(smoothProgress.current - 1, 1)); 
+        const sp2 = Math.max(0, Math.min(smoothProgress.current - 1, 1));
         const sp3 = Math.max(0, smoothProgress.current - 2);
 
         const baseScale = isMobile ? 1.1 : 1.70;
-        const targetScale = (sp2 * baseScale) - (sp3 * baseScale); 
+        const targetScale = (sp2 * baseScale) - (sp3 * baseScale);
         phoneRef.current.scale.set(targetScale, targetScale, targetScale);
 
         const targetX = isMobile ? 0 : -5;
         const targetY = isMobile ? 2.5 : 0;
 
         phoneRef.current.position.y = THREE.MathUtils.lerp(-15, targetY, sp2) - (sp3 * 10);
-        phoneRef.current.position.x = THREE.MathUtils.lerp(5.5, targetX, sp2); 
-        phoneRef.current.position.z = THREE.MathUtils.lerp(0, 0, sp2); 
+        phoneRef.current.position.x = THREE.MathUtils.lerp(5.5, targetX, sp2);
+        phoneRef.current.position.z = THREE.MathUtils.lerp(0, 0, sp2);
 
         phoneRef.current.rotation.y = 0.65 + Math.sin(state.clock.elapsedTime * 0.8) * 0.05;
         phoneRef.current.rotation.x = -0.15;
@@ -105,7 +105,7 @@ function RetroPhone({ scrollProgress, isMobile }: { scrollProgress: number, isMo
     });
 
     return (
-        <group ref={phoneRef} position={[0, 0, 0]} scale={[0,0,0]}>
+        <group ref={phoneRef} position={[0, 0, 0]} scale={[0, 0, 0]}>
             <mesh position={[0, 0, -0.1]}><extrudeGeometry args={[roundedRectShape, extrudeSettings]} /><meshBasicMaterial color="#00FFFF" wireframe /></mesh>
             <mesh position={[0, 0, 0.12]}><planeGeometry args={[2.2, 4.6]} /><meshBasicMaterial color="#110022" transparent opacity={0.85} /></mesh>
             <group position={[0.6, 1.8, -0.15]}>
@@ -141,8 +141,8 @@ function RetroBot({ scrollProgress, isMobile }: { scrollProgress: number, isMobi
     useFrame((state) => {
         if (!botRef.current) return;
         smoothProgress.current = THREE.MathUtils.lerp(smoothProgress.current, scrollProgress, 0.04);
-        const sp3 = Math.max(0, Math.min(smoothProgress.current - 2, 1)); 
-        const sp4 = Math.max(0, smoothProgress.current - 3); 
+        const sp3 = Math.max(0, Math.min(smoothProgress.current - 2, 1));
+        const sp4 = Math.max(0, smoothProgress.current - 3);
 
         const baseScale = isMobile ? 0.9 : 1.5;
         const targetScale = (sp3 * baseScale) - (sp4 * baseScale);
@@ -151,7 +151,7 @@ function RetroBot({ scrollProgress, isMobile }: { scrollProgress: number, isMobi
         const targetX = isMobile ? 0 : 4;
         const targetY = isMobile ? 2.0 : 0.5;
 
-        botRef.current.position.y = THREE.MathUtils.lerp(12, targetY, sp3) + (sp4 * 10); 
+        botRef.current.position.y = THREE.MathUtils.lerp(12, targetY, sp3) + (sp4 * 10);
         botRef.current.position.x = THREE.MathUtils.lerp(12, targetX, sp3);
         botRef.current.position.z = THREE.MathUtils.lerp(-5, 1, sp3);
 
@@ -168,7 +168,7 @@ function RetroBot({ scrollProgress, isMobile }: { scrollProgress: number, isMobi
     });
 
     return (
-        <group ref={botRef} scale={[0,0,0]}>
+        <group ref={botRef} scale={[0, 0, 0]}>
             <mesh><sphereGeometry args={[1, 32, 32]} /><meshBasicMaterial color="#00FFFF" wireframe /></mesh>
             <group position={[0, 0, 0.9]}>
                 <mesh><circleGeometry args={[0.45, 32]} /><meshBasicMaterial color="#110022" /></mesh>
@@ -199,9 +199,9 @@ function CyberShield({ scrollProgress, isMobile }: { scrollProgress: number, isM
     useFrame((state) => {
         if (!shieldRef.current) return;
         smoothProgress.current = THREE.MathUtils.lerp(smoothProgress.current, scrollProgress, 0.04);
-        
+
         const sp4 = Math.max(0, Math.min(smoothProgress.current - 3, 1));
-        const sp5 = Math.max(0, smoothProgress.current - 4); 
+        const sp5 = Math.max(0, smoothProgress.current - 4);
 
         const baseScale = isMobile ? 0.9 : 1.5;
         const targetScale = (sp4 * baseScale) - (sp5 * baseScale);
@@ -210,8 +210,8 @@ function CyberShield({ scrollProgress, isMobile }: { scrollProgress: number, isM
         const targetX = isMobile ? 0 : 4;
         const targetY = isMobile ? 1.5 : -2.5;
 
-        shieldRef.current.position.y = THREE.MathUtils.lerp(-15, targetY, sp4) + (sp5 * 20); 
-        shieldRef.current.position.x = THREE.MathUtils.lerp(10, targetX, sp4); 
+        shieldRef.current.position.y = THREE.MathUtils.lerp(-15, targetY, sp4) + (sp5 * 20);
+        shieldRef.current.position.x = THREE.MathUtils.lerp(10, targetX, sp4);
         shieldRef.current.position.z = THREE.MathUtils.lerp(0, 0, sp4);
 
         shieldRef.current.position.y += Math.sin(state.clock.elapsedTime * 1.5) * 0.05;
@@ -230,7 +230,7 @@ function CyberShield({ scrollProgress, isMobile }: { scrollProgress: number, isM
         }
 
         if (moleculesRef.current) {
-            const molScale = 1 + hoverAnim.current * 0.6; 
+            const molScale = 1 + hoverAnim.current * 0.6;
             moleculesRef.current.scale.set(molScale, molScale, molScale);
             moleculesRef.current.rotation.y = state.clock.elapsedTime * 0.5 * (1 + hoverAnim.current);
             const mat = moleculesRef.current.material as THREE.PointsMaterial;
@@ -239,7 +239,7 @@ function CyberShield({ scrollProgress, isMobile }: { scrollProgress: number, isM
     });
 
     return (
-        <group ref={shieldRef} scale={[0,0,0]}>
+        <group ref={shieldRef} scale={[0, 0, 0]}>
             <mesh onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }} onPointerOut={() => { setHovered(false); document.body.style.cursor = 'auto'; }} visible={false}><sphereGeometry args={[2.5, 16, 16]} /><meshBasicMaterial /></mesh>
             <group ref={coreRef}>
                 <mesh><octahedronGeometry args={[0.7, 0]} /><meshBasicMaterial color="#FF1493" wireframe /></mesh>
@@ -282,9 +282,9 @@ function DimensionWarp({ scrollProgress }: { scrollProgress: number }) {
 
         groupRef.current.children.forEach((line: any, i) => {
             line.position.z += lines[i].speed;
-            if (line.material) line.material.opacity = targetOpacity * 0.7; 
+            if (line.material) line.material.opacity = targetOpacity * 0.7;
             if (line.position.z > 0) {
-                line.position.z = -120; 
+                line.position.z = -120;
             }
         });
     });
@@ -323,19 +323,19 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
     useFrame((state) => {
         if (!groupRef.current) return;
         smoothProgress.current = THREE.MathUtils.lerp(smoothProgress.current, scrollProgress, 0.04);
-        
+
         const sp5 = Math.max(0, smoothProgress.current - 4);
         const baseScale = isMobile ? 0.8 : 1.3;
-        const targetScale = Math.min(sp5, 1) * baseScale; 
+        const targetScale = Math.min(sp5, 1) * baseScale;
         groupRef.current.scale.set(targetScale, targetScale, targetScale);
 
         const t = state.clock.elapsedTime;
-        
+
         const targetZ = isMobile ? -80 : -55;
         groupRef.current.position.z = THREE.MathUtils.lerp(-120, targetZ, sp5);
-        groupRef.current.position.x = 0; 
-        groupRef.current.rotation.y = 0; 
-        
+        groupRef.current.position.x = 0;
+        groupRef.current.rotation.y = 0;
+
         const cycle = t % 16;
         const isFire = cycle > 5 && cycle < 8.5;
         const isLaser = cycle > 11 && cycle < 14.5;
@@ -344,13 +344,13 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
         smoothLaser.current = THREE.MathUtils.lerp(smoothLaser.current, isLaser ? 1 : 0, 0.08);
 
         const walkSpeed = 3.5;
-        
+
         if (leftLegRef.current && rightLegRef.current) {
             leftLegRef.current.rotation.x = Math.sin(t * walkSpeed) * 0.6;
             rightLegRef.current.rotation.x = Math.sin(t * walkSpeed + Math.PI) * 0.6;
-            
+
             groupRef.current.position.y = -10 + Math.abs(Math.sin(t * walkSpeed)) * 0.8;
-            groupRef.current.rotation.z = Math.sin(t * 1.75) * 0.05; 
+            groupRef.current.rotation.z = Math.sin(t * 1.75) * 0.05;
         }
 
         if (leftArmRef.current && rightArmRef.current) {
@@ -383,11 +383,11 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
 
         if (laserGroupRef.current) {
             laserGroupRef.current.visible = smoothLaser.current > 0.01;
-            laserGroupRef.current.scale.z = smoothLaser.current; 
+            laserGroupRef.current.scale.z = smoothLaser.current;
             laserGroupRef.current.children.forEach((eyeGroup: any) => {
                 eyeGroup.children.forEach((mesh: any) => {
                     if (mesh.material && mesh.material.transparent) {
-                        mesh.material.opacity = (0.6 + Math.sin(t * 30) * 0.4) * smoothLaser.current; 
+                        mesh.material.opacity = (0.6 + Math.sin(t * 30) * 0.4) * smoothLaser.current;
                     }
                 });
             });
@@ -404,9 +404,9 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
                 <mesh rotation={[Math.PI / 2, 0, 0]}><capsuleGeometry args={[3, 5, 32, 32]} /><meshStandardMaterial color="#0a0510" roughness={0.7} metalness={0.5} /></mesh>
                 <mesh rotation={[Math.PI / 2, 0, 0]}><capsuleGeometry args={[3.1, 5.2, 16, 16]} /><meshBasicMaterial color="#8A2BE2" wireframe transparent opacity={0.3} /></mesh>
 
-                {Array.from({length: 5}).map((_, i) => (
+                {Array.from({ length: 5 }).map((_, i) => (
                     <mesh key={i} position={[0, 4 - i * 1.2, -1 - i * 1.5]} rotation={[0.5, 0, 0]}>
-                        <coneGeometry args={[1 - i*0.1, 3, 4]} />
+                        <coneGeometry args={[1 - i * 0.1, 3, 4]} />
                         <meshBasicMaterial color="#00FFFF" wireframe />
                     </mesh>
                 ))}
@@ -414,8 +414,11 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
                 <group position={[0, -2, -4]} rotation={[-0.4, 0, 0]}>
                     {tailSegments.map((_, i) => (
                         <group key={i} position={[0, 0, -i * 1.8]}>
-                            <mesh><cylinderGeometry args={[2 - i*0.2, 1.8 - i*0.2, 2, 16]} rotation={[Math.PI/2, 0, 0]} /><meshStandardMaterial color="#0a0510" /></mesh>
-                            <mesh position={[0, 1.5 - i*0.1, 0]}><coneGeometry args={[0.5, 1.5, 4]} /><meshBasicMaterial color="#00FFFF" wireframe /></mesh>
+                            <mesh rotation={[Math.PI / 2, 0, 0]}>
+                                <cylinderGeometry args={[2 - i * 0.2, 1.8 - i * 0.2, 2, 16]} />
+                                <meshStandardMaterial color="#0a0510" />
+                            </mesh>
+                            <mesh position={[0, 1.5 - i * 0.1, 0]}><coneGeometry args={[0.5, 1.5, 4]} /><meshBasicMaterial color="#00FFFF" wireframe /></mesh>
                         </group>
                     ))}
                 </group>
@@ -469,7 +472,7 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
 
                     <group ref={jawRef} position={[0, 0.2, -0.5]}>
                         <mesh position={[0, 0, 2.5]}><boxGeometry args={[2.5, 1, 4]} /><meshStandardMaterial color="#0a0510" /></mesh>
-                        
+
                         <group position={[0, 0.55, 3.8]}>
                             {[-0.8, -0.4, 0, 0.4, 0.8].map((x, i) => (
                                 <mesh key={`low-tooth-${i}`} position={[x, 0, 0]}>
@@ -534,7 +537,7 @@ function WaveGrid() {
 }
 
 // --- КОМПОНЕНТ 8: ПЛАНЕТА И КАМЕРА (ИНТЕГРАЦИЯ ПЛАВНОГО ЗВУКА) ---
-function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onImpact?: () => void, scrollProgress: number, globalMouse: React.MutableRefObject<{x: number, y: number}>, isMobile: boolean }) {
+function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onImpact?: () => void, scrollProgress: number, globalMouse: React.MutableRefObject<{ x: number, y: number }>, isMobile: boolean }) {
     const [playQuake, { sound: quakeSoundInstance }] = useSound(quakeSound, { volume: 1.0 });
 
     const groupRef = useRef<THREE.Group>(null);
@@ -553,12 +556,12 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onIm
         if (!groupRef.current) return;
         const t = state.clock.getElapsedTime();
         smoothScroll.current = THREE.MathUtils.lerp(smoothScroll.current, scrollProgress, 0.04);
-        
+
         const sp1_clamped = Math.min(Math.max(smoothScroll.current, 0), 1);
         const sp2_clamped = Math.min(Math.max(smoothScroll.current - 1, 0), 1);
         const sp3_clamped = Math.min(Math.max(smoothScroll.current - 2, 0), 1);
         const sp4_clamped = Math.min(Math.max(smoothScroll.current - 3, 0), 1);
-        const sp5_clamped = Math.min(Math.max(smoothScroll.current - 4, 0), 1); 
+        const sp5_clamped = Math.min(Math.max(smoothScroll.current - 4, 0), 1);
 
         const transition = THREE.MathUtils.smoothstep(t, 0, FLY_END);
         const angle = t * 0.3 + (transition * t * 0.8);
@@ -572,22 +575,22 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onIm
         let finalCamX = THREE.MathUtils.lerp(ringX, 2, transition);
         let finalCamY = THREE.MathUtils.lerp(ringY, 0, transition);
         let finalCamZ = THREE.MathUtils.lerp(ringZ, 3, transition);
-        
+
         let finalLookX = THREE.MathUtils.lerp(lookAheadX, PLANET_POS.x, transition);
-        let finalLookY = 0; 
+        let finalLookY = 0;
         let finalLookZ = THREE.MathUtils.lerp(lookAheadZ, PLANET_POS.z, transition);
 
         if (sp1_clamped > 0) finalCamZ += sp1_clamped * 3.0;
 
         if (sp2_clamped > 0) {
-            const zoomOut = Math.sin(sp2_clamped * Math.PI) * 4.0; 
+            const zoomOut = Math.sin(sp2_clamped * Math.PI) * 4.0;
             finalCamX = THREE.MathUtils.lerp(finalCamX, -1.5, sp2_clamped);
             finalCamZ = THREE.MathUtils.lerp(finalCamZ, 8, sp2_clamped) + zoomOut;
             finalLookX = THREE.MathUtils.lerp(finalLookX, -5, sp2_clamped);
         }
 
         if (sp3_clamped > 0) {
-            const zoomOut2 = Math.sin(sp3_clamped * Math.PI) * 3.0; 
+            const zoomOut2 = Math.sin(sp3_clamped * Math.PI) * 3.0;
             finalCamX = THREE.MathUtils.lerp(finalCamX, 2, sp3_clamped);
             finalCamZ = THREE.MathUtils.lerp(finalCamZ, 7, sp3_clamped) + zoomOut2;
             finalLookX = THREE.MathUtils.lerp(finalLookX, 0.5, sp3_clamped);
@@ -595,29 +598,29 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onIm
 
         if (sp4_clamped > 0) {
             finalCamX = THREE.MathUtils.lerp(finalCamX, 2, sp4_clamped);
-            finalCamY = THREE.MathUtils.lerp(finalCamY, -3, sp4_clamped); 
+            finalCamY = THREE.MathUtils.lerp(finalCamY, -3, sp4_clamped);
             finalCamZ = THREE.MathUtils.lerp(finalCamZ, 6, sp4_clamped);
             finalLookX = THREE.MathUtils.lerp(finalLookX, 2, sp4_clamped);
             finalLookY = THREE.MathUtils.lerp(finalLookY, -2, sp4_clamped);
         }
 
         if (sp5_clamped > 0) {
-            finalCamX = THREE.MathUtils.lerp(finalCamX, 15, sp5_clamped); 
-            finalCamY = THREE.MathUtils.lerp(finalCamY, -5, sp5_clamped); 
-            
-            let baseCamZ = THREE.MathUtils.lerp(finalCamZ, -23, sp5_clamped); 
+            finalCamX = THREE.MathUtils.lerp(finalCamX, 15, sp5_clamped);
+            finalCamY = THREE.MathUtils.lerp(finalCamY, -5, sp5_clamped);
+
+            let baseCamZ = THREE.MathUtils.lerp(finalCamZ, -23, sp5_clamped);
 
             const camCycle = t % 8;
             let currentZoom = 0;
             if (camCycle < 5) {
-                currentZoom = THREE.MathUtils.smoothstep(camCycle / 5, 0, 1) * 10; 
+                currentZoom = THREE.MathUtils.smoothstep(camCycle / 5, 0, 1) * 10;
             } else {
                 currentZoom = THREE.MathUtils.smoothstep(1 - (camCycle - 5) / 3, 0, 1) * 10;
             }
 
             finalCamZ = baseCamZ - (currentZoom * sp5_clamped);
-            
-            finalLookX = THREE.MathUtils.lerp(finalLookX, 0, sp5_clamped); 
+
+            finalLookX = THREE.MathUtils.lerp(finalLookX, 0, sp5_clamped);
             finalLookY = THREE.MathUtils.lerp(finalLookY, -5, sp5_clamped);
             finalLookZ = THREE.MathUtils.lerp(finalLookZ, -100, sp5_clamped);
 
@@ -628,30 +631,30 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onIm
 
         if (t > IMPACT_TIME) {
             const cycle = (t - IMPACT_TIME) % 24;
-            let targetX = 7.5; let targetZ = 1.0; 
+            let targetX = 7.5; let targetZ = 1.0;
             if (scrollProgress === 0) {
-                if (cycle <= 3) { targetX = 7.5; targetZ = 1.0; } 
-                else if (cycle > 3 && cycle <= 6) { const ease = THREE.MathUtils.smoothstep((cycle - 3)/3, 0, 1); targetX = 7.5 - (1.5 * ease); targetZ = 1.0 + (1.3 * ease); } 
-                else if (cycle > 6 && cycle <= 11) { targetX = 6.0; targetZ = 2.3; } 
-                else if (cycle > 11 && cycle <= 14) { const ease = THREE.MathUtils.smoothstep((cycle - 11)/3, 0, 1); targetX = 6.0 + (3.5 * ease); targetZ = 2.3 - (2.3 * ease); } 
-                else if (cycle > 14 && cycle <= 21) { targetX = 9.5; targetZ = 0.0; } 
-                else if (cycle > 21 && cycle <= 24) { const ease = THREE.MathUtils.smoothstep((cycle - 21)/3, 0, 1); targetX = 9.5 - (2.0 * ease); targetZ = 0.0 + (1.0 * ease); }
+                if (cycle <= 3) { targetX = 7.5; targetZ = 1.0; }
+                else if (cycle > 3 && cycle <= 6) { const ease = THREE.MathUtils.smoothstep((cycle - 3) / 3, 0, 1); targetX = 7.5 - (1.5 * ease); targetZ = 1.0 + (1.3 * ease); }
+                else if (cycle > 6 && cycle <= 11) { targetX = 6.0; targetZ = 2.3; }
+                else if (cycle > 11 && cycle <= 14) { const ease = THREE.MathUtils.smoothstep((cycle - 11) / 3, 0, 1); targetX = 6.0 + (3.5 * ease); targetZ = 2.3 - (2.3 * ease); }
+                else if (cycle > 14 && cycle <= 21) { targetX = 9.5; targetZ = 0.0; }
+                else if (cycle > 21 && cycle <= 24) { const ease = THREE.MathUtils.smoothstep((cycle - 21) / 3, 0, 1); targetX = 9.5 - (2.0 * ease); targetZ = 0.0 + (1.0 * ease); }
             }
-            targetX += sp1_clamped * 30.0; targetZ -= sp1_clamped * 10.0; 
+            targetX += sp1_clamped * 30.0; targetZ -= sp1_clamped * 10.0;
 
             groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetX, 0.04);
             groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetZ, 0.04);
-            
+
             if (t < IMPACT_TIME + 0.4) {
-                const intensity = (IMPACT_TIME + 0.4 - t) * 0.6; 
+                const intensity = (IMPACT_TIME + 0.4 - t) * 0.6;
                 finalCamX += (Math.random() - 0.5) * intensity; finalCamY += (Math.random() - 0.5) * intensity;
             }
 
             if (!firedRef.current) {
-                firedRef.current = true; 
-                setShowWave(true); 
-                
-                playQuake(); 
+                firedRef.current = true;
+                setShowWave(true);
+
+                playQuake();
 
                 setTimeout(() => {
                     if (quakeSoundInstance) {
@@ -683,7 +686,7 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onIm
             let isVisible = false;
             waveGroupRef.current.children.forEach((child) => {
                 const mat = (child as THREE.Mesh).material as THREE.MeshBasicMaterial;
-                mat.opacity = Math.max(0, mat.opacity - 0.04); 
+                mat.opacity = Math.max(0, mat.opacity - 0.04);
                 if (mat.opacity > 0) isVisible = true;
             });
             if (!isVisible) setShowWave(false);
@@ -712,7 +715,7 @@ export default function BgPlanet3D({ onImpact, isMobile }: { onImpact?: () => vo
 
     useEffect(() => {
         const handleScroll = () => {
-            const totalHeight = window.innerHeight; 
+            const totalHeight = window.innerHeight;
             const progress = Math.max(0, window.scrollY / totalHeight);
             setScrollProgress(progress);
         };
@@ -735,7 +738,7 @@ export default function BgPlanet3D({ onImpact, isMobile }: { onImpact?: () => vo
                 <RetroPhone scrollProgress={scrollProgress} isMobile={isMobile} />
                 <RetroBot scrollProgress={scrollProgress} isMobile={isMobile} />
                 <CyberShield scrollProgress={scrollProgress} isMobile={isMobile} />
-                
+
                 <DimensionWarp scrollProgress={scrollProgress} />
                 <CyberGodzilla scrollProgress={scrollProgress} isMobile={isMobile} />
             </Canvas>

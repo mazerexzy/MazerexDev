@@ -141,7 +141,7 @@ function App() {
   return (
     <div className="relative w-full bg-black">
 
-      {startHero && <BgPlanet3D onImpact={() => setIsImpacted(true)} />}
+      {startHero && <BgPlanet3D onImpact={() => setIsImpacted(true)} isMobile={isMobile} />}
       {startHero && <SoundToggle />}
 
       {startHero && (
