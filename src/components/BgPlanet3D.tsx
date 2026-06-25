@@ -18,12 +18,12 @@ function RetroLaptop({ scrollProgress, isMobile }: { scrollProgress: number, isM
         const sp1 = Math.min(smoothProgress.current, 1);
         const sp2 = Math.max(0, smoothProgress.current - 1);
 
-        const baseScale = isMobile ? 1.0 : 1.5;
+        const baseScale = isMobile ? 1.4 : 1.5;
         const targetScale = (sp1 * baseScale) - (sp2 * baseScale);
         laptopRef.current.scale.set(targetScale, targetScale, targetScale);
 
         const targetX = isMobile ? 0 : 2;
-        const targetY = isMobile ? 1.5 : -1.2;
+        const targetY = isMobile ? -1.0 : -1.2;
 
         laptopRef.current.position.y = THREE.MathUtils.lerp(-12, targetY, sp1) - (sp2 * 10);
         laptopRef.current.position.x = THREE.MathUtils.lerp(-15, targetX, sp1);
@@ -87,12 +87,12 @@ function RetroPhone({ scrollProgress, isMobile }: { scrollProgress: number, isMo
         const sp2 = Math.max(0, Math.min(smoothProgress.current - 1, 1));
         const sp3 = Math.max(0, smoothProgress.current - 2);
 
-        const baseScale = isMobile ? 1.1 : 1.70;
+        const baseScale = isMobile ? 1.5 : 1.70;
         const targetScale = (sp2 * baseScale) - (sp3 * baseScale);
         phoneRef.current.scale.set(targetScale, targetScale, targetScale);
 
         const targetX = isMobile ? 0 : -5;
-        const targetY = isMobile ? 2.5 : 0;
+        const targetY = isMobile ? -1.0 : 0;
 
         phoneRef.current.position.y = THREE.MathUtils.lerp(-15, targetY, sp2) - (sp3 * 10);
         phoneRef.current.position.x = THREE.MathUtils.lerp(5.5, targetX, sp2);
@@ -144,12 +144,12 @@ function RetroBot({ scrollProgress, isMobile }: { scrollProgress: number, isMobi
         const sp3 = Math.max(0, Math.min(smoothProgress.current - 2, 1));
         const sp4 = Math.max(0, smoothProgress.current - 3);
 
-        const baseScale = isMobile ? 0.9 : 1.5;
+        const baseScale = isMobile ? 1.4 : 1.5;
         const targetScale = (sp3 * baseScale) - (sp4 * baseScale);
         botRef.current.scale.set(targetScale, targetScale, targetScale);
 
         const targetX = isMobile ? 0 : 4;
-        const targetY = isMobile ? 2.0 : 0.5;
+        const targetY = isMobile ? -1.0 : 0.5;
 
         botRef.current.position.y = THREE.MathUtils.lerp(12, targetY, sp3) + (sp4 * 10);
         botRef.current.position.x = THREE.MathUtils.lerp(12, targetX, sp3);
@@ -203,12 +203,12 @@ function CyberShield({ scrollProgress, isMobile }: { scrollProgress: number, isM
         const sp4 = Math.max(0, Math.min(smoothProgress.current - 3, 1));
         const sp5 = Math.max(0, smoothProgress.current - 4);
 
-        const baseScale = isMobile ? 0.9 : 1.5;
+        const baseScale = isMobile ? 1.4 : 1.5;
         const targetScale = (sp4 * baseScale) - (sp5 * baseScale);
         shieldRef.current.scale.set(targetScale, targetScale, targetScale);
 
         const targetX = isMobile ? 0 : 4;
-        const targetY = isMobile ? 1.5 : -2.5;
+        const targetY = isMobile ? -1.0 : -2.5;
 
         shieldRef.current.position.y = THREE.MathUtils.lerp(-15, targetY, sp4) + (sp5 * 20);
         shieldRef.current.position.x = THREE.MathUtils.lerp(10, targetX, sp4);
@@ -325,13 +325,13 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
         smoothProgress.current = THREE.MathUtils.lerp(smoothProgress.current, scrollProgress, 0.04);
 
         const sp5 = Math.max(0, smoothProgress.current - 4);
-        const baseScale = isMobile ? 0.8 : 1.3;
+        const baseScale = isMobile ? 1.2 : 1.3;
         const targetScale = Math.min(sp5, 1) * baseScale;
         groupRef.current.scale.set(targetScale, targetScale, targetScale);
 
         const t = state.clock.elapsedTime;
 
-        const targetZ = isMobile ? -80 : -55;
+        const targetZ = isMobile ? -60 : -55;
         groupRef.current.position.z = THREE.MathUtils.lerp(-120, targetZ, sp5);
         groupRef.current.position.x = 0;
         groupRef.current.rotation.y = 0;
@@ -536,7 +536,7 @@ function WaveGrid() {
     );
 }
 
-// --- КОМПОНЕНТ 8: ПЛАНЕТА И КАМЕРА (ИНТЕГРАЦИЯ ПЛАВНОГО ЗВУКА) ---
+// --- КОМПОНЕНТ 8: ПЛАНЕТА И КАМЕРА ---
 function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onImpact?: () => void, scrollProgress: number, globalMouse: React.MutableRefObject<{ x: number, y: number }>, isMobile: boolean }) {
     const [playQuake, { sound: quakeSoundInstance }] = useSound(quakeSound, { volume: 1.0 });
 
@@ -662,9 +662,9 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onIm
                     }
                 }, 1000);
 
-                if (onImpact) onImpact();
+                    if (onImpact) onImpact();
+                }
             }
-        }
 
         if (t > FLY_END) {
             mouseRef.current.x = THREE.MathUtils.lerp(mouseRef.current.x, globalMouse.current.x * 1, 0.02);
@@ -672,7 +672,6 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onIm
             finalCamX += mouseRef.current.x; finalCamY += mouseRef.current.y;
         }
 
-        // Если это мобилка, чуть-чуть отодвигаем саму камеру назад, чтобы все влезло
         if (isMobile) {
             finalCamZ += 6;
         }
