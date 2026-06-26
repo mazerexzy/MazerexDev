@@ -18,12 +18,14 @@ function RetroLaptop({ scrollProgress, isMobile }: { scrollProgress: number, isM
         const sp1 = Math.min(smoothProgress.current, 1);
         const sp2 = Math.max(0, smoothProgress.current - 1);
 
-        const baseScale = isMobile ? 1.4 : 1.5;
+        // Сделали огромным для мобилок (2.2)
+        const baseScale = isMobile ? 2.2 : 1.5;
         const targetScale = (sp1 * baseScale) - (sp2 * baseScale);
         laptopRef.current.scale.set(targetScale, targetScale, targetScale);
 
-        const targetX = isMobile ? 2 : 2;
-        const targetY = isMobile ? -1.0 : -1.2;
+        // Идеальный центр с учетом угла камеры
+        const targetX = isMobile ? 4.5 : 2;
+        const targetY = isMobile ? -0.5 : -1.2;
 
         laptopRef.current.position.y = THREE.MathUtils.lerp(-12, targetY, sp1) - (sp2 * 10);
         laptopRef.current.position.x = THREE.MathUtils.lerp(-15, targetX, sp1);
@@ -49,7 +51,7 @@ function RetroLaptop({ scrollProgress, isMobile }: { scrollProgress: number, isM
                 )}
             </group>
             <mesh position={[0, 0.11, 1.25]}><boxGeometry args={[1.0, 0.02, 0.5]} /><meshBasicMaterial color="#FF0080" wireframe /></mesh>
-            <mesh position={[0, 0.1, -1.4]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.08, 0.08, 4.0, 16]} /><meshBasicMaterial color="#9370DB" wireframe /></mesh>
+            <mesh position={[0, 0.1, -1.4]} rotation={[0, 0, Math.PI / 2] as any}><cylinderGeometry args={[0.08, 0.08, 4.0, 16]} /><meshBasicMaterial color="#9370DB" wireframe /></mesh>
             <group ref={lidRef} position={[0, 0.1, -1.4]}>
                 <mesh position={[0, 1.3, 0]}><boxGeometry args={[4.0, 2.6, 0.1]} /><meshBasicMaterial color="#9370DB" wireframe /></mesh>
                 <mesh position={[0, 1.3, 0.06]}><planeGeometry args={[3.8, 2.4]} /><meshBasicMaterial color="#00FFFF" transparent opacity={0.15} side={THREE.DoubleSide} /></mesh>
@@ -87,18 +89,22 @@ function RetroPhone({ scrollProgress, isMobile }: { scrollProgress: number, isMo
         const sp2 = Math.max(0, Math.min(smoothProgress.current - 1, 1));
         const sp3 = Math.max(0, smoothProgress.current - 2);
 
-        const baseScale = isMobile ? 1.5 : 1.70;
+        // Массивный размер для телефона
+        const baseScale = isMobile ? 2.0 : 1.70;
         const targetScale = (sp2 * baseScale) - (sp3 * baseScale);
         phoneRef.current.scale.set(targetScale, targetScale, targetScale);
 
-        const targetX = isMobile ? 0 : -5;
-        const targetY = isMobile ? -1.0 : 0;
+        const targetX = isMobile ? -3.5 : -5;
+        const targetY = isMobile ? -0.8 : 0;
 
         phoneRef.current.position.y = THREE.MathUtils.lerp(-15, targetY, sp2) - (sp3 * 10);
         phoneRef.current.position.x = THREE.MathUtils.lerp(5.5, targetX, sp2);
         phoneRef.current.position.z = THREE.MathUtils.lerp(0, 0, sp2);
 
-        phoneRef.current.rotation.y = 0.65 + Math.sin(state.clock.elapsedTime * 0.8) * 0.05;
+        // Экран телефона смотрит на текст (-0.2 влево)
+        const targetRotY = isMobile ? -0.2 : 0.65;
+        phoneRef.current.rotation.y = targetRotY + Math.sin(state.clock.elapsedTime * 0.8) * 0.05;
+        
         phoneRef.current.rotation.x = -0.15;
         phoneRef.current.rotation.z = 0.08 + Math.cos(state.clock.elapsedTime * 1.2) * 0.02;
         phoneRef.current.position.y += Math.sin(state.clock.elapsedTime * 2.5) * 0.05;
@@ -110,21 +116,21 @@ function RetroPhone({ scrollProgress, isMobile }: { scrollProgress: number, isMo
             <mesh position={[0, 0, 0.12]}><planeGeometry args={[2.2, 4.6]} /><meshBasicMaterial color="#110022" transparent opacity={0.85} /></mesh>
             <group position={[0.6, 1.8, -0.15]}>
                 <mesh position={[0, 0, -0.05]}><boxGeometry args={[0.7, 0.8, 0.1]} /><meshBasicMaterial color="#8A2BE2" wireframe /></mesh>
-                <mesh position={[-0.15, 0.2, -0.05]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.15, 0.15, 0.1]} /><meshBasicMaterial color="#00FFFF" wireframe /></mesh>
-                <mesh position={[0.15, -0.2, -0.05]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.15, 0.15, 0.1]} /><meshBasicMaterial color="#00FFFF" wireframe /></mesh>
+                <mesh position={[-0.15, 0.2, -0.05]} rotation={[Math.PI / 2, 0, 0] as any}><cylinderGeometry args={[0.15, 0.15, 0.1]} /><meshBasicMaterial color="#00FFFF" wireframe /></mesh>
+                <mesh position={[0.15, -0.2, -0.05]} rotation={[Math.PI / 2, 0, 0] as any}><cylinderGeometry args={[0.15, 0.15, 0.1]} /><meshBasicMaterial color="#00FFFF" wireframe /></mesh>
             </group>
             <group position={[0, 0, 0.13]}>
                 <mesh><ringGeometry args={[0.3, 0.35, 32]} /><meshBasicMaterial color="#FF1493" /></mesh>
                 <mesh><circleGeometry args={[0.15, 32]} /><meshBasicMaterial color="#FF1493" /></mesh>
                 <mesh position={[-0.6, 1.2, 0]}><ringGeometry args={[0.25, 0.3, 32]} /><meshBasicMaterial color="#FF1493" /></mesh>
-                <mesh position={[-0.45, 0.6, 0]} rotation={[0, 0, -Math.PI / 4]}><planeGeometry args={[0.03, 0.8]} /><meshBasicMaterial color="#FF1493" /></mesh>
+                <mesh position={[-0.45, 0.6, 0]} rotation={[0, 0, -Math.PI / 4] as any}><planeGeometry args={[0.03, 0.8]} /><meshBasicMaterial color="#FF1493" /></mesh>
                 <mesh position={[-0.6, 0.95, 0]}><planeGeometry args={[0.03, 0.2]} /><meshBasicMaterial color="#FF1493" /></mesh>
                 <mesh position={[0.7, 1.4, 0]}><ringGeometry args={[0.25, 0.3, 32]} /><meshBasicMaterial color="#FF1493" /></mesh>
-                <mesh position={[0.35, 0.7, 0]} rotation={[0, 0, Math.PI / 3.5]}><planeGeometry args={[0.03, 1.2]} /><meshBasicMaterial color="#FF1493" /></mesh>
+                <mesh position={[0.35, 0.7, 0]} rotation={[0, 0, Math.PI / 3.5] as any}><planeGeometry args={[0.03, 1.2]} /><meshBasicMaterial color="#FF1493" /></mesh>
                 <mesh position={[-0.7, -1.4, 0]}><ringGeometry args={[0.25, 0.3, 32]} /><meshBasicMaterial color="#FF1493" /></mesh>
-                <mesh position={[-0.35, -0.7, 0]} rotation={[0, 0, Math.PI / 3.5]}><planeGeometry args={[0.03, 1.2]} /><meshBasicMaterial color="#FF1493" /></mesh>
+                <mesh position={[-0.35, -0.7, 0]} rotation={[0, 0, Math.PI / 3.5] as any}><planeGeometry args={[0.03, 1.2]} /><meshBasicMaterial color="#FF1493" /></mesh>
                 <mesh position={[0.6, -1.0, 0]}><ringGeometry args={[0.25, 0.3, 32]} /><meshBasicMaterial color="#FF1493" /></mesh>
-                <mesh position={[0.3, -0.5, 0]} rotation={[0, 0, -Math.PI / 4]}><planeGeometry args={[0.03, 0.8]} /><meshBasicMaterial color="#FF1493" /></mesh>
+                <mesh position={[0.3, -0.5, 0]} rotation={[0, 0, -Math.PI / 4] as any}><planeGeometry args={[0.03, 0.8]} /><meshBasicMaterial color="#FF1493" /></mesh>
                 <mesh position={[0.6, -0.8, 0]}><planeGeometry args={[0.03, 0.2]} /><meshBasicMaterial color="#FF1493" /></mesh>
             </group>
         </group>
@@ -144,19 +150,22 @@ function RetroBot({ scrollProgress, isMobile }: { scrollProgress: number, isMobi
         const sp3 = Math.max(0, Math.min(smoothProgress.current - 2, 1));
         const sp4 = Math.max(0, smoothProgress.current - 3);
 
-        const baseScale = isMobile ? 1.4 : 1.5;
+        const baseScale = isMobile ? 2.0 : 1.5;
         const targetScale = (sp3 * baseScale) - (sp4 * baseScale);
         botRef.current.scale.set(targetScale, targetScale, targetScale);
 
-        const targetX = isMobile ? 0 : 4;
-        const targetY = isMobile ? -1.0 : 0.5;
+        const targetX = isMobile ? 1.0 : 4;
+        const targetY = isMobile ? -0.5 : 0.5;
 
         botRef.current.position.y = THREE.MathUtils.lerp(12, targetY, sp3) + (sp4 * 10);
         botRef.current.position.x = THREE.MathUtils.lerp(12, targetX, sp3);
         botRef.current.position.z = THREE.MathUtils.lerp(-5, 1, sp3);
 
         botRef.current.position.y += Math.sin(state.clock.elapsedTime * 2) * 0.05;
-        botRef.current.rotation.y = -0.3 + Math.sin(state.clock.elapsedTime * 1.2) * 0.1;
+        
+        // Робот смотрит прямо в камеру (0)
+        const targetRotY = isMobile ? 0 : -0.3;
+        botRef.current.rotation.y = targetRotY + Math.sin(state.clock.elapsedTime * 1.2) * 0.1;
         botRef.current.rotation.z = Math.cos(state.clock.elapsedTime * 0.8) * 0.05;
 
         if (ring1Ref.current && ring2Ref.current) {
@@ -175,8 +184,8 @@ function RetroBot({ scrollProgress, isMobile }: { scrollProgress: number, isMobi
                 <mesh position={[0, 0, 0.01]}><circleGeometry args={[0.3, 32]} /><meshBasicMaterial color="#FF1493" transparent opacity={0.8} /></mesh>
                 <mesh position={[0, 0, 0.02]}><circleGeometry args={[0.1, 16]} /><meshBasicMaterial color="#FFFFFF" /></mesh>
             </group>
-            <mesh position={[-1.1, 0, 0]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.2, 0.4, 0.5, 8]} /><meshBasicMaterial color="#8A2BE2" wireframe /></mesh>
-            <mesh position={[1.1, 0, 0]} rotation={[0, 0, -Math.PI / 2]}><cylinderGeometry args={[0.2, 0.4, 0.5, 8]} /><meshBasicMaterial color="#8A2BE2" wireframe /></mesh>
+            <mesh position={[-1.1, 0, 0]} rotation={[0, 0, Math.PI / 2] as any}><cylinderGeometry args={[0.2, 0.4, 0.5, 8]} /><meshBasicMaterial color="#8A2BE2" wireframe /></mesh>
+            <mesh position={[1.1, 0, 0]} rotation={[0, 0, -Math.PI / 2] as any}><cylinderGeometry args={[0.2, 0.4, 0.5, 8]} /><meshBasicMaterial color="#8A2BE2" wireframe /></mesh>
             <mesh position={[0, 1.1, 0]}><coneGeometry args={[0.4, 0.6, 4]} /><meshBasicMaterial color="#FF00FF" wireframe /></mesh>
             <mesh ref={ring1Ref}><torusGeometry args={[1.6, 0.02, 16, 64]} /><meshBasicMaterial color="#FF00FF" wireframe /></mesh>
             <mesh ref={ring2Ref}><torusGeometry args={[1.9, 0.01, 16, 64]} /><meshBasicMaterial color="#00FFFF" transparent opacity={0.5} /></mesh>
@@ -203,11 +212,11 @@ function CyberShield({ scrollProgress, isMobile }: { scrollProgress: number, isM
         const sp4 = Math.max(0, Math.min(smoothProgress.current - 3, 1));
         const sp5 = Math.max(0, smoothProgress.current - 4);
 
-        const baseScale = isMobile ? 1.4 : 1.5;
+        const baseScale = isMobile ? 1.8 : 1.5;
         const targetScale = (sp4 * baseScale) - (sp5 * baseScale);
         shieldRef.current.scale.set(targetScale, targetScale, targetScale);
 
-        const targetX = isMobile ? 0 : 4;
+        const targetX = isMobile ? 2.0 : 4;
         const targetY = isMobile ? -1.0 : -2.5;
 
         shieldRef.current.position.y = THREE.MathUtils.lerp(-15, targetY, sp4) + (sp5 * 20);
@@ -251,10 +260,10 @@ function CyberShield({ scrollProgress, isMobile }: { scrollProgress: number, isM
             <mesh><icosahedronGeometry args={[1.4, 1]} /><meshBasicMaterial color="#8A2BE2" wireframe transparent opacity={0.1} /></mesh>
             <group ref={outerRingRef}>
                 <mesh><torusGeometry args={[2.2, 0.02, 16, 100]} /><meshBasicMaterial color="#8A2BE2" wireframe /></mesh>
-                <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[2.1, 0.01, 16, 100]} /><meshBasicMaterial color="#FF1493" transparent opacity={0.6} /></mesh>
+                <mesh rotation={[Math.PI / 2, 0, 0] as any}><torusGeometry args={[2.1, 0.01, 16, 100]} /><meshBasicMaterial color="#FF1493" transparent opacity={0.6} /></mesh>
             </group>
             <mesh position={[0, 2.2, 0]}><cylinderGeometry args={[0, 0.1, 0.8, 4]} /><meshBasicMaterial color="#FF00FF" wireframe /></mesh>
-            <mesh position={[0, -2.2, 0]} rotation={[Math.PI, 0, 0]}><cylinderGeometry args={[0, 0.1, 0.8, 4]} /><meshBasicMaterial color="#FF00FF" wireframe /></mesh>
+            <mesh position={[0, -2.2, 0]} rotation={[Math.PI, 0, 0] as any}><cylinderGeometry args={[0, 0.1, 0.8, 4]} /><meshBasicMaterial color="#FF00FF" wireframe /></mesh>
         </group>
     );
 }
@@ -292,7 +301,7 @@ function DimensionWarp({ scrollProgress }: { scrollProgress: number }) {
     return (
         <group ref={groupRef} visible={false}>
             {lines.map((l, i) => (
-                <mesh key={i} position={[l.x, l.y, l.z]} rotation={[Math.PI / 2, 0, 0]}>
+                <mesh key={i} position={[l.x, l.y, l.z]} rotation={[Math.PI / 2, 0, 0] as any}>
                     <cylinderGeometry args={[0.05, 0.05, l.length, 4]} />
                     <meshBasicMaterial color={i % 2 === 0 ? "#FF00FF" : "#00FFFF"} transparent opacity={0} />
                 </mesh>
@@ -401,20 +410,20 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
             <pointLight position={[-10, 5, -20]} intensity={3} color="#00FFFF" />
 
             <group ref={torsoRef} position={[0, 6, 0]}>
-                <mesh rotation={[Math.PI / 2, 0, 0]}><capsuleGeometry args={[3, 5, 32, 32]} /><meshStandardMaterial color="#0a0510" roughness={0.7} metalness={0.5} /></mesh>
-                <mesh rotation={[Math.PI / 2, 0, 0]}><capsuleGeometry args={[3.1, 5.2, 16, 16]} /><meshBasicMaterial color="#8A2BE2" wireframe transparent opacity={0.3} /></mesh>
+                <mesh rotation={[Math.PI / 2, 0, 0] as any}><capsuleGeometry args={[3, 5, 32, 32]} /><meshStandardMaterial color="#0a0510" roughness={0.7} metalness={0.5} /></mesh>
+                <mesh rotation={[Math.PI / 2, 0, 0] as any}><capsuleGeometry args={[3.1, 5.2, 16, 16]} /><meshBasicMaterial color="#8A2BE2" wireframe transparent opacity={0.3} /></mesh>
 
                 {Array.from({ length: 5 }).map((_, i) => (
-                    <mesh key={i} position={[0, 4 - i * 1.2, -1 - i * 1.5]} rotation={[0.5, 0, 0]}>
+                    <mesh key={i} position={[0, 4 - i * 1.2, -1 - i * 1.5]} rotation={[0.5, 0, 0] as any}>
                         <coneGeometry args={[1 - i * 0.1, 3, 4]} />
                         <meshBasicMaterial color="#00FFFF" wireframe />
                     </mesh>
                 ))}
 
-                <group position={[0, -2, -4]} rotation={[-0.4, 0, 0]}>
+                <group position={[0, -2, -4]} rotation={[-0.4, 0, 0] as any}>
                     {tailSegments.map((_, i) => (
                         <group key={i} position={[0, 0, -i * 1.8]}>
-                            <mesh rotation={[Math.PI / 2, 0, 0]}>
+                            <mesh rotation={[Math.PI / 2, 0, 0] as any}>
                                 <cylinderGeometry args={[2 - i * 0.2, 1.8 - i * 0.2, 2, 16]} />
                                 <meshStandardMaterial color="#0a0510" />
                             </mesh>
@@ -424,22 +433,22 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
                 </group>
 
                 <group ref={leftArmRef} position={[-3.5, 2, 2]}>
-                    <mesh rotation={[0, 0, 0.3]}><capsuleGeometry args={[0.8, 2.5, 16, 16]} /><meshStandardMaterial color="#0a0510" /></mesh>
-                    <group position={[-0.5, -2, 0.5]} rotation={[-0.5, 0, 0]}>
+                    <mesh rotation={[0, 0, 0.3] as any}><capsuleGeometry args={[0.8, 2.5, 16, 16]} /><meshStandardMaterial color="#0a0510" /></mesh>
+                    <group position={[-0.5, -2, 0.5]} rotation={[-0.5, 0, 0] as any}>
                         <mesh><capsuleGeometry args={[0.6, 2, 16, 16]} /><meshStandardMaterial color="#0a0510" /></mesh>
-                        <mesh position={[0, -1.5, 0.2]} rotation={[0.3, 0, 0]}><coneGeometry args={[0.15, 1, 4]} /><meshBasicMaterial color="#00FFFF" /></mesh>
-                        <mesh position={[-0.3, -1.5, 0.1]} rotation={[0.3, 0, 0.2]}><coneGeometry args={[0.15, 1, 4]} /><meshBasicMaterial color="#00FFFF" /></mesh>
-                        <mesh position={[0.3, -1.5, 0.1]} rotation={[0.3, 0, -0.2]}><coneGeometry args={[0.15, 1, 4]} /><meshBasicMaterial color="#00FFFF" /></mesh>
+                        <mesh position={[0, -1.5, 0.2]} rotation={[0.3, 0, 0] as any}><coneGeometry args={[0.15, 1, 4]} /><meshBasicMaterial color="#00FFFF" /></mesh>
+                        <mesh position={[-0.3, -1.5, 0.1]} rotation={[0.3, 0, 0.2] as any}><coneGeometry args={[0.15, 1, 4]} /><meshBasicMaterial color="#00FFFF" /></mesh>
+                        <mesh position={[0.3, -1.5, 0.1]} rotation={[0.3, 0, -0.2] as any}><coneGeometry args={[0.15, 1, 4]} /><meshBasicMaterial color="#00FFFF" /></mesh>
                     </group>
                 </group>
 
                 <group ref={rightArmRef} position={[3.5, 2, 2]}>
-                    <mesh rotation={[0, 0, -0.3]}><capsuleGeometry args={[0.8, 2.5, 16, 16]} /><meshStandardMaterial color="#0a0510" /></mesh>
-                    <group position={[0.5, -2, 0.5]} rotation={[-0.5, 0, 0]}>
+                    <mesh rotation={[0, 0, -0.3] as any}><capsuleGeometry args={[0.8, 2.5, 16, 16]} /><meshStandardMaterial color="#0a0510" /></mesh>
+                    <group position={[0.5, -2, 0.5]} rotation={[-0.5, 0, 0] as any}>
                         <mesh><capsuleGeometry args={[0.6, 2, 16, 16]} /><meshStandardMaterial color="#0a0510" /></mesh>
-                        <mesh position={[0, -1.5, 0.2]} rotation={[0.3, 0, 0]}><coneGeometry args={[0.15, 1, 4]} /><meshBasicMaterial color="#00FFFF" /></mesh>
-                        <mesh position={[-0.3, -1.5, 0.1]} rotation={[0.3, 0, 0.2]}><coneGeometry args={[0.15, 1, 4]} /><meshBasicMaterial color="#00FFFF" /></mesh>
-                        <mesh position={[0.3, -1.5, 0.1]} rotation={[0.3, 0, -0.2]}><coneGeometry args={[0.15, 1, 4]} /><meshBasicMaterial color="#00FFFF" /></mesh>
+                        <mesh position={[0, -1.5, 0.2]} rotation={[0.3, 0, 0] as any}><coneGeometry args={[0.15, 1, 4]} /><meshBasicMaterial color="#00FFFF" /></mesh>
+                        <mesh position={[-0.3, -1.5, 0.1]} rotation={[0.3, 0, 0.2] as any}><coneGeometry args={[0.15, 1, 4]} /><meshBasicMaterial color="#00FFFF" /></mesh>
+                        <mesh position={[0.3, -1.5, 0.1]} rotation={[0.3, 0, -0.2] as any}><coneGeometry args={[0.15, 1, 4]} /><meshBasicMaterial color="#00FFFF" /></mesh>
                     </group>
                 </group>
 
@@ -449,24 +458,24 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
 
                     <group position={[0, 0.35, 2.8]}>
                         {[-1.0, -0.6, -0.2, 0.2, 0.6, 1.0].map((x, i) => (
-                            <mesh key={`up-tooth-${i}`} position={[x, 0, 0]} rotation={[Math.PI, 0, 0]}>
+                            <mesh key={`up-tooth-${i}`} position={[x, 0, 0]} rotation={[Math.PI, 0, 0] as any}>
                                 <coneGeometry args={[0.2, 0.9, 4]} />
                                 <meshStandardMaterial color="#e0e0e0" roughness={0.1} metalness={0.8} />
                             </mesh>
                         ))}
                     </group>
 
-                    <mesh position={[-1.2, 2.0, 3.1]} rotation={[0, 0, -0.3]}><boxGeometry args={[0.7, 0.15, 0.1]} /><meshBasicMaterial color="#FF0000" /></mesh>
-                    <mesh position={[1.2, 2.0, 3.1]} rotation={[0, 0, 0.3]}><boxGeometry args={[0.7, 0.15, 0.1]} /><meshBasicMaterial color="#FF0000" /></mesh>
+                    <mesh position={[-1.2, 2.0, 3.1]} rotation={[0, 0, -0.3] as any}><boxGeometry args={[0.7, 0.15, 0.1]} /><meshBasicMaterial color="#FF0000" /></mesh>
+                    <mesh position={[1.2, 2.0, 3.1]} rotation={[0, 0, 0.3] as any}><boxGeometry args={[0.7, 0.15, 0.1]} /><meshBasicMaterial color="#FF0000" /></mesh>
 
                     <group ref={laserGroupRef} visible={false}>
                         <group position={[-1.3, 1.8, 3.1]}>
-                            <mesh position={[0, 0, 50]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.15, 0.15, 100, 8]} /><meshBasicMaterial color="#FFFFFF" /></mesh>
-                            <mesh position={[0, 0, 50]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.8, 1.2, 100, 16]} /><meshBasicMaterial color="#FF0000" transparent opacity={0.6} depthWrite={false} /></mesh>
+                            <mesh position={[0, 0, 50]} rotation={[Math.PI / 2, 0, 0] as any}><cylinderGeometry args={[0.15, 0.15, 100, 8]} /><meshBasicMaterial color="#FFFFFF" /></mesh>
+                            <mesh position={[0, 0, 50]} rotation={[Math.PI / 2, 0, 0] as any}><cylinderGeometry args={[0.8, 1.2, 100, 16]} /><meshBasicMaterial color="#FF0000" transparent opacity={0.6} depthWrite={false} /></mesh>
                         </group>
                         <group position={[1.3, 1.8, 3.1]}>
-                            <mesh position={[0, 0, 50]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.15, 0.15, 100, 8]} /><meshBasicMaterial color="#FFFFFF" /></mesh>
-                            <mesh position={[0, 0, 50]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.8, 1.2, 100, 16]} /><meshBasicMaterial color="#FF0000" transparent opacity={0.6} depthWrite={false} /></mesh>
+                            <mesh position={[0, 0, 50]} rotation={[Math.PI / 2, 0, 0] as any}><cylinderGeometry args={[0.15, 0.15, 100, 8]} /><meshBasicMaterial color="#FFFFFF" /></mesh>
+                            <mesh position={[0, 0, 50]} rotation={[Math.PI / 2, 0, 0] as any}><cylinderGeometry args={[0.8, 1.2, 100, 16]} /><meshBasicMaterial color="#FF0000" transparent opacity={0.6} depthWrite={false} /></mesh>
                         </group>
                     </group>
 
@@ -483,7 +492,7 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
                         </group>
 
                         <group ref={fireRef} position={[0, 0, 4.5]} visible={false}>
-                            <mesh position={[0, 0, 2]} rotation={[Math.PI / 2, 0, 0]}><coneGeometry args={[1.5, 6, 16]} /><meshBasicMaterial color="#FF0000" transparent opacity={0.8} /></mesh>
+                            <mesh position={[0, 0, 2]} rotation={[Math.PI / 2, 0, 0] as any}><coneGeometry args={[1.5, 6, 16]} /><meshBasicMaterial color="#FF0000" transparent opacity={0.8} /></mesh>
                             <mesh position={[0, 0, 4]}><icosahedronGeometry args={[2, 1]} /><meshBasicMaterial color="#FF8C00" transparent opacity={0.6} wireframe /></mesh>
                             <mesh position={[0, 0, 6]}><sphereGeometry args={[2.5, 16, 16]} /><meshBasicMaterial color="#FFFF00" transparent opacity={0.4} wireframe /></mesh>
                         </group>
@@ -494,7 +503,7 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
             <group ref={leftLegRef} position={[-3, 3, 0]}>
                 <mesh><capsuleGeometry args={[1.5, 3, 16, 16]} /><meshStandardMaterial color="#0a0510" /></mesh>
                 <mesh><capsuleGeometry args={[1.6, 3.1, 8, 8]} /><meshBasicMaterial color="#FF1493" wireframe transparent opacity={0.3} /></mesh>
-                <group position={[0, -2.5, 1]} rotation={[-0.2, 0, 0]}>
+                <group position={[0, -2.5, 1]} rotation={[-0.2, 0, 0] as any}>
                     <mesh><capsuleGeometry args={[1, 3, 16, 16]} /><meshStandardMaterial color="#0a0510" /></mesh>
                     <mesh position={[0, -2, 0.5]}><boxGeometry args={[1.8, 1, 3]} /><meshStandardMaterial color="#0a0510" /></mesh>
                 </group>
@@ -503,7 +512,7 @@ function CyberGodzilla({ scrollProgress, isMobile }: { scrollProgress: number, i
             <group ref={rightLegRef} position={[3, 3, 0]}>
                 <mesh><capsuleGeometry args={[1.5, 3, 16, 16]} /><meshStandardMaterial color="#0a0510" /></mesh>
                 <mesh><capsuleGeometry args={[1.6, 3.1, 8, 8]} /><meshBasicMaterial color="#FF1493" wireframe transparent opacity={0.3} /></mesh>
-                <group position={[0, -2.5, 1]} rotation={[-0.2, 0, 0]}>
+                <group position={[0, -2.5, 1]} rotation={[-0.2, 0, 0] as any}>
                     <mesh><capsuleGeometry args={[1, 3, 16, 16]} /><meshStandardMaterial color="#0a0510" /></mesh>
                     <mesh position={[0, -2, 0.5]}><boxGeometry args={[1.8, 1, 3]} /><meshStandardMaterial color="#0a0510" /></mesh>
                 </group>
@@ -695,10 +704,10 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onIm
     return (
         <group ref={groupRef} position={[PLANET_POS.x, PLANET_POS.y, PLANET_POS.z]} scale={[1.4, 1.4, 1.4]}>
             <mesh><sphereGeometry args={[2.2, 64, 64]} /><meshBasicMaterial color="#FF00FF" wireframe /></mesh>
-            <mesh rotation={[Math.PI / 3, 0, 0]}><torusGeometry args={[4.2, 0.1, 4, 100]} /><meshBasicMaterial color="#00FFFF" wireframe /></mesh>
-            <mesh rotation={[Math.PI / 3, 0.1, 0]}><torusGeometry args={[3.5, 0.02, 4, 80]} /><meshBasicMaterial color="#FF0080" wireframe /></mesh>
+            <mesh rotation={[Math.PI / 3, 0, 0] as any}><torusGeometry args={[4.2, 0.1, 4, 100]} /><meshBasicMaterial color="#00FFFF" wireframe /></mesh>
+            <mesh rotation={[Math.PI / 3, 0.1, 0] as any}><torusGeometry args={[3.5, 0.02, 4, 80]} /><meshBasicMaterial color="#FF0080" wireframe /></mesh>
             {showWave && (
-                <group ref={waveGroupRef} rotation={[Math.PI / 3, 0, 0]}>
+                <group ref={waveGroupRef} rotation={[Math.PI / 3, 0, 0] as any}>
                     <mesh><ringGeometry args={[4.2, 4.8, 64]} /><meshBasicMaterial color="#ffffff" transparent opacity={0.9} side={THREE.DoubleSide} /></mesh>
                     <mesh><ringGeometry args={[3.0, 4.2, 64]} /><meshBasicMaterial color="#00FFFF" transparent opacity={0.4} side={THREE.DoubleSide} /></mesh>
                 </group>

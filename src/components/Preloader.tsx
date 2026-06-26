@@ -53,7 +53,8 @@ const Preloader = ({ onStartTransition, onComplete }: { onStartTransition: () =>
     };
 
     return (
-        <div className={`fixed inset-0 z-50 flex items-center justify-center overflow-hidden transition-colors duration-700 ease-in-out ${isExiting ? 'bg-transparent pointer-events-none' : 'bg-black'}`}>
+        /* ИСПОЛЬЗУЕМ h-[100dvh] для идеального центрирования на мобилках */
+        <div className={`fixed top-0 left-0 w-full h-[100dvh] z-50 flex items-center justify-center overflow-hidden transition-colors duration-700 ease-in-out ${isExiting ? 'bg-transparent pointer-events-none' : 'bg-black'}`}>
 
             {/* СЕТКА (Длительность 700мс) */}
             <div className={`absolute inset-0 bg-repeat z-0 transition-all duration-700 ease-in-out ${isExiting ? 'scale-[4] opacity-0' : 'scale-100 opacity-100'}`} style={{
@@ -64,7 +65,8 @@ const Preloader = ({ onStartTransition, onComplete }: { onStartTransition: () =>
 
             <div className="z-10 flex items-center justify-center">
                 {phase !== 'ready' ? (
-                    <p className={`text-6xl font-gdblack bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 bg-[length:200%_auto] text-transparent bg-clip-text animate-gradient-x transition-all duration-500 ease-in-out
+                    /* ДОБАВЛЕНЫ py-2 и leading-normal, чтобы градиент не обрезал шрифт */
+                    <p className={`text-6xl font-gdblack leading-normal py-2 bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 bg-[length:200%_auto] text-transparent bg-clip-text animate-gradient-x transition-all duration-500 ease-in-out
                         ${phase === 'zooming' ? 'scale-[2] opacity-0' : 'scale-50 opacity-100'}`}>
                         {progress}%
                     </p>
