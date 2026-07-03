@@ -8,5 +8,5 @@ export default defineConfig({
     tailwindcss(),
   ],
   assetsInclude: ['**/*.glb', '**/*.gltf'],
-  base: 'MazerexDev',
+  base: '/MazerexDev/',
 })
