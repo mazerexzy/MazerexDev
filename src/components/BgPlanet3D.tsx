@@ -18,12 +18,10 @@ function RetroLaptop({ scrollProgress, isMobile }: { scrollProgress: number, isM
         const sp1 = Math.min(smoothProgress.current, 1);
         const sp2 = Math.max(0, smoothProgress.current - 1);
 
-        // Сделали огромным для мобилок (2.2)
         const baseScale = isMobile ? 2.2 : 1.5;
         const targetScale = (sp1 * baseScale) - (sp2 * baseScale);
         laptopRef.current.scale.set(targetScale, targetScale, targetScale);
 
-        // Идеальный центр с учетом угла камеры
         const targetX = isMobile ? 4.5 : 2;
         const targetY = isMobile ? -0.5 : -1.2;
 
@@ -89,7 +87,6 @@ function RetroPhone({ scrollProgress, isMobile }: { scrollProgress: number, isMo
         const sp2 = Math.max(0, Math.min(smoothProgress.current - 1, 1));
         const sp3 = Math.max(0, smoothProgress.current - 2);
 
-        // Массивный размер для телефона
         const baseScale = isMobile ? 2.0 : 1.70;
         const targetScale = (sp2 * baseScale) - (sp3 * baseScale);
         phoneRef.current.scale.set(targetScale, targetScale, targetScale);
@@ -101,7 +98,6 @@ function RetroPhone({ scrollProgress, isMobile }: { scrollProgress: number, isMo
         phoneRef.current.position.x = THREE.MathUtils.lerp(5.5, targetX, sp2);
         phoneRef.current.position.z = THREE.MathUtils.lerp(0, 0, sp2);
 
-        // Экран телефона смотрит на текст (-0.2 влево)
         const targetRotY = isMobile ? -0.2 : 0.65;
         phoneRef.current.rotation.y = targetRotY + Math.sin(state.clock.elapsedTime * 0.8) * 0.05;
         
@@ -163,7 +159,6 @@ function RetroBot({ scrollProgress, isMobile }: { scrollProgress: number, isMobi
 
         botRef.current.position.y += Math.sin(state.clock.elapsedTime * 2) * 0.05;
         
-        // Робот смотрит прямо в камеру (0)
         const targetRotY = isMobile ? 0 : -0.3;
         botRef.current.rotation.y = targetRotY + Math.sin(state.clock.elapsedTime * 1.2) * 0.1;
         botRef.current.rotation.z = Math.cos(state.clock.elapsedTime * 0.8) * 0.05;
@@ -193,7 +188,7 @@ function RetroBot({ scrollProgress, isMobile }: { scrollProgress: number, isMobi
     );
 }
 
-// --- КОМПОНЕНТ 4: КИБЕР-ЩИТ С РАСЩЕПЛЕНИЕМ НА МОЛЕКУЛЫ ---
+// --- КОМПОНЕНТ 4: КИБЕР-ЩИТ ---
 function CyberShield({ scrollProgress, isMobile }: { scrollProgress: number, isMobile: boolean }) {
     const shieldRef = useRef<THREE.Group>(null);
     const coreRef = useRef<THREE.Group>(null);
@@ -272,6 +267,8 @@ function CyberShield({ scrollProgress, isMobile }: { scrollProgress: number, isM
 function DimensionWarp({ scrollProgress }: { scrollProgress: number }) {
     const groupRef = useRef<THREE.Group>(null);
     const smoothProgress = useRef(0);
+    const isWarping = useRef(false);
+    const warpPhase = useRef(0);
 
     const lines = useMemo(() => new Array(200).fill(0).map(() => ({
         x: (Math.random() - 0.5) * 80,
@@ -281,19 +278,34 @@ function DimensionWarp({ scrollProgress }: { scrollProgress: number }) {
         speed: Math.random() * 4 + 2
     })), []);
 
-    useFrame(() => {
+    useEffect(() => {
+        const handleWarp = () => { isWarping.current = true; };
+        window.addEventListener('hyperspace-jump', handleWarp);
+        return () => window.removeEventListener('hyperspace-jump', handleWarp);
+    }, []);
+
+    useFrame((state, delta) => {
         if (!groupRef.current) return;
         smoothProgress.current = THREE.MathUtils.lerp(smoothProgress.current, scrollProgress, 0.04);
         const sp5 = Math.max(0, smoothProgress.current - 4);
 
-        groupRef.current.visible = sp5 > 0.05;
-        const targetOpacity = Math.min(sp5, 1);
+        let targetOpacity = Math.min(sp5, 1);
+        groupRef.current.visible = sp5 > 0.05 || isWarping.current;
+
+        let speedMult = 1;
+
+        if (isWarping.current) {
+            warpPhase.current += delta;
+            targetOpacity = 1; 
+            speedMult = 15 + warpPhase.current * 60; 
+            groupRef.current.scale.z = 1 + warpPhase.current * 30; 
+        }
 
         groupRef.current.children.forEach((line: any, i) => {
-            line.position.z += lines[i].speed;
+            line.position.z += lines[i].speed * speedMult;
             if (line.material) line.material.opacity = targetOpacity * 0.7;
-            if (line.position.z > 0) {
-                line.position.z = -120;
+            if (line.position.z > 20) {
+                line.position.z = -150; 
             }
         });
     });
@@ -545,8 +557,8 @@ function WaveGrid() {
     );
 }
 
-// --- КОМПОНЕНТ 8: ПЛАНЕТА И КАМЕРА ---
-function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onImpact?: () => void, scrollProgress: number, globalMouse: React.MutableRefObject<{ x: number, y: number }>, isMobile: boolean }) {
+// --- КОМПОНЕНТ 8: ПЛАНЕТА И КАМЕРА (С ФИКСАМИ isReturnTrip) ---
+function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile, isReturnTrip }: { onImpact?: () => void, scrollProgress: number, globalMouse: React.MutableRefObject<{ x: number, y: number }>, isMobile: boolean, isReturnTrip: boolean }) {
     const [playQuake, { sound: quakeSoundInstance }] = useSound(quakeSound, { volume: 1.0 });
 
     const groupRef = useRef<THREE.Group>(null);
@@ -557,13 +569,26 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onIm
     const mouseRef = useRef(new THREE.Vector2(0, 0));
     const smoothScroll = useRef(0);
 
+    const isWarping = useRef(false);
+    const warpPhase = useRef(0);
+
     const PLANET_POS = new THREE.Vector3(5.5, 0, 0);
     const FLY_END = 4.5;
     const IMPACT_TIME = 4.8;
 
-    useFrame((state) => {
+    useEffect(() => {
+        const handleWarp = () => { isWarping.current = true; };
+        window.addEventListener('hyperspace-jump', handleWarp);
+        return () => window.removeEventListener('hyperspace-jump', handleWarp);
+    }, []);
+
+    useFrame((state, delta) => {
         if (!groupRef.current) return;
-        const t = state.clock.getElapsedTime();
+
+        // 🔥 ФОКУС СО ВРЕМЕНЕМ
+        const clockTime = state.clock.getElapsedTime();
+        const t = isReturnTrip ? clockTime + 4.5 : clockTime;
+
         smoothScroll.current = THREE.MathUtils.lerp(smoothScroll.current, scrollProgress, 0.04);
 
         const sp1_clamped = Math.min(Math.max(smoothScroll.current, 0), 1);
@@ -662,18 +687,15 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onIm
             if (!firedRef.current) {
                 firedRef.current = true;
                 setShowWave(true);
-
                 playQuake();
-
                 setTimeout(() => {
                     if (quakeSoundInstance) {
                         quakeSoundInstance.fade(1.0, 0.0, 2000);
                     }
                 }, 1000);
-
-                    if (onImpact) onImpact();
-                }
+                if (onImpact) onImpact();
             }
+        }
 
         if (t > FLY_END) {
             mouseRef.current.x = THREE.MathUtils.lerp(mouseRef.current.x, globalMouse.current.x * 1, 0.02);
@@ -683,6 +705,19 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onIm
 
         if (isMobile) {
             finalCamZ += 6;
+        }
+
+        if (isWarping.current) {
+            warpPhase.current += delta;
+            const warpDist = Math.pow(warpPhase.current, 3) * 180; 
+            finalCamZ -= warpDist;
+            const twist = Math.pow(warpPhase.current, 2) * 10; 
+            camera.up.set(Math.sin(twist), Math.cos(twist), 0);
+            finalLookX = finalCamX;
+            finalLookY = finalCamY;
+            finalLookZ = finalCamZ - 100;
+        } else {
+            camera.up.set(0, 1, 0); 
         }
 
         camera.position.set(finalCamX, finalCamY, finalCamZ);
@@ -716,10 +751,11 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile }: { onIm
     );
 }
 
-// --- МЕЙН ---
-export default function BgPlanet3D({ onImpact, isMobile }: { onImpact?: () => void, isMobile: boolean }) {
+// --- МЕЙН (ДОБАВИЛ isReturnTrip) ---
+export default function BgPlanet3D({ onImpact, isMobile, isReturnTrip = false }: { onImpact?: () => void, isMobile: boolean, isReturnTrip?: boolean }) {
     const [scrollProgress, setScrollProgress] = useState(0);
     const globalMouse = useRef({ x: 0, y: 0 });
+    const [isFading, setIsFading] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -732,16 +768,29 @@ export default function BgPlanet3D({ onImpact, isMobile }: { onImpact?: () => vo
             globalMouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
         };
 
+        const handleWarp = () => {
+            setTimeout(() => setIsFading(true), 500);
+        };
+
         window.addEventListener('scroll', handleScroll);
         window.addEventListener('mousemove', handleMouseMove);
-        return () => { window.removeEventListener('scroll', handleScroll); window.removeEventListener('mousemove', handleMouseMove); };
+        window.addEventListener('hyperspace-jump', handleWarp);
+        
+        return () => { 
+            window.removeEventListener('scroll', handleScroll); 
+            window.removeEventListener('mousemove', handleMouseMove); 
+            window.removeEventListener('hyperspace-jump', handleWarp);
+        };
     }, []);
 
     return (
         <div className="fixed inset-0 z-0 w-full bg-[#483D8B] h-full pointer-events-none" style={{ backgroundImage: `url(${Sky})` }}>
+            <div className={`absolute inset-0 z-50 bg-[#0a0510] pointer-events-none transition-opacity duration-700 ease-in ${isFading ? 'opacity-100' : 'opacity-0'}`} />
+
             <Canvas style={{ pointerEvents: 'auto' }}>
                 <WaveGrid />
-                <SaturnScene onImpact={onImpact} scrollProgress={scrollProgress} globalMouse={globalMouse} isMobile={isMobile} />
+                {/* 🔥 ПРОКИДЫВАЕМ isReturnTrip */}
+                <SaturnScene onImpact={onImpact} scrollProgress={scrollProgress} globalMouse={globalMouse} isMobile={isMobile} isReturnTrip={isReturnTrip} />
                 <RetroLaptop scrollProgress={scrollProgress} isMobile={isMobile} />
                 <RetroPhone scrollProgress={scrollProgress} isMobile={isMobile} />
                 <RetroBot scrollProgress={scrollProgress} isMobile={isMobile} />
