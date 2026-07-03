@@ -59,7 +59,6 @@ function App() {
   const lenisRef = useRef<Lenis | null>(null);
   const isScrollingAnimatingRef = useRef(false);
   
-  const bgmPlayedRef = useRef(false);
   const currentTrackRef = useRef<'none' | 'home' | 'stack'>('none');
 
   const [playScroll] = useSound(scrollSound, {
@@ -96,7 +95,7 @@ function App() {
 
   useEffect(() => {
     THREE.DefaultLoadingManager.onStart = () => setHonestLoadProgress(1);
-    THREE.DefaultLoadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+    THREE.DefaultLoadingManager.onProgress = (_url, itemsLoaded, itemsTotal) => {
         setHonestLoadProgress(Math.max(1, Math.round((itemsLoaded / itemsTotal) * 100)));
     };
     THREE.DefaultLoadingManager.onLoad = () => setHonestLoadProgress(100);

@@ -284,7 +284,7 @@ function DimensionWarp({ scrollProgress }: { scrollProgress: number }) {
         return () => window.removeEventListener('hyperspace-jump', handleWarp);
     }, []);
 
-    useFrame((state, delta) => {
+    useFrame((_state, delta) => {
         if (!groupRef.current) return;
         smoothProgress.current = THREE.MathUtils.lerp(smoothProgress.current, scrollProgress, 0.04);
         const sp5 = Math.max(0, smoothProgress.current - 4);

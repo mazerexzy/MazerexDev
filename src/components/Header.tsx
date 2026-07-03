@@ -1,4 +1,4 @@
-import React from 'react';
+
 import useSound from 'use-sound';
 
 // 🔥 ЗАМЕНИ ПУТИ К ЗВУКАМ НА СВОИ (КАК В FULLCHAOS)
