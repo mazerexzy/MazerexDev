@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three-stdlib';
 
 import laptopPath from '../../assets/models/laptop.glb?url';
-import platformPath from '../../assets/models/platform3.glb?url';
+import platformPath from '../../assets/models/platform.glb?url';
 import spaceFirePath from '../../assets/models/spaceFire.glb?url'; 
 import serverPath from '../../assets/models/server.glb?url';
 import databasesPath from '../../assets/models/databases.glb?url';

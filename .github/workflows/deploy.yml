@@ -26,17 +26,21 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22 # 🔥 Обновили версию до 22, чтобы убить желтый варнинг
+          node-version: 22 
           cache: npm
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4 # 🔥 ЭТО ТОТ САМЫЙ ПРОПУЩЕННЫЙ ШАГ
+        uses: actions/configure-pages@v4
 
       - name: Install dependencies
         run: npm install
 
+      # 🔥 ДОБАВИЛИ touch dist/.nojekyll
+      # Эта команда после сборки создает скрытый файл, который отключает движок Jekyll
       - name: Build
-        run: npm run build
+        run: |
+          npm run build
+          touch dist/.nojekyll
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
