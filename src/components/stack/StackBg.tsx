@@ -2,7 +2,6 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Float, useGLTF, useAnimations } from '@react-three/drei';
 import { useEffect, useState, useRef } from 'react';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three-stdlib';
 
 import laptopPath from '../../assets/models/laptop.glb?url';
 import platformPath from '../../assets/models/platform.glb?url';
@@ -14,11 +13,8 @@ import apiPath from '../../assets/models/ApiIntegration.glb?url';
 import quakePath from '../../assets/sounds/quake.mp3'; 
 
 function Model({ url, scale = 1, position = [0, 0, 0], rotation = [0, 0, 0] }: { url: string; scale?: number; position?: [number, number, number]; rotation?: [number, number, number] }) {
-    const [model, setModel] = useState<THREE.Group | null>(null);
-    useEffect(() => {
-        new GLTFLoader().load(url, (gltf) => setModel(gltf.scene));
-    }, [url]);
-    return model ? <primitive object={model} scale={scale} position={position} rotation={rotation} /> : null;
+    const { scene } = useGLTF(url);
+    return <primitive object={scene} scale={scale} position={position} rotation={rotation} />;
 }
 
 function SpaceFireModel({ url, scale = 1, position = [0, 0, 0] }: { url: string; scale?: number; position?: [number, number, number] }) {

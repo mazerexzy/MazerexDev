@@ -21,19 +21,20 @@ import BackendDev from "./components/stack/BackendDev";
 import DatabasesDev from "./components/stack/DatabasesDev"; 
 import DevOpsDev from "./components/stack/DevOpsDev"; 
 import ApiIntegrationDev from "./components/stack/ApiIntegrationDev";
-import PromoStackOne from "./components/stack/PromoStackOne"; // 🔥 ИМПОРТ 1
-import PromoStackTwo from "./components/stack/PromoStackTwo"; // 🔥 ИМПОРТ 2
+import PromoStackOne from "./components/stack/PromoStackOne"; 
+import PromoStackTwo from "./components/stack/PromoStackTwo"; 
 import StackBg from "./components/stack/StackBg";
 
 import * as THREE from 'three'; 
-import { GLTFLoader } from 'three-stdlib';
+import { useProgress, useGLTF } from '@react-three/drei'; 
 
 import laptopPath from './assets/models/laptop.glb?url';
-import platformPath from './assets/models/platform3.glb?url';
+import platformPath from './assets/models/platform.glb?url';
 import serverPath from './assets/models/server.glb?url'; 
 import databasesPath from './assets/models/databases.glb?url';
 import devopsPath from './assets/models/devops.glb?url';
 import apiPath from './assets/models/ApiIntegration.glb?url'; 
+import spaceFirePath from './assets/models/spaceFire.glb?url'; 
 
 const ASSET_PATHS = [
   laptopPath, 
@@ -42,6 +43,7 @@ const ASSET_PATHS = [
   databasesPath,
   devopsPath,
   apiPath, 
+  spaceFirePath,
   '/models/earth_globe.glb' 
 ];
 
@@ -52,9 +54,10 @@ function App() {
   const [isAnimationDone, setIsAnimationDone] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
   const [currentPage, setCurrentPage] = useState<'home' | 'stack'>('home');
-
-  const [honestLoadProgress, setHonestLoadProgress] = useState(0);
   const [isReturnTrip, setIsReturnTrip] = useState(false);
+
+  const { progress } = useProgress(); 
+  const [smoothProgress, setSmoothProgress] = useState(0);
 
   const isAnimationDoneRef = useRef(false);
   const cooldownRef = useRef(false);
@@ -86,6 +89,16 @@ function App() {
   }, [playScroll]);
 
   useEffect(() => {
+    if (progress > smoothProgress) {
+        setSmoothProgress(Math.round(progress));
+    }
+  }, [progress, smoothProgress]);
+
+  useEffect(() => {
+    ASSET_PATHS.forEach((path) => useGLTF.preload(path));
+  }, []);
+
+  useEffect(() => {
     if (!showPreloader && startHero) {
       if (currentPage === 'home' && currentTrackRef.current !== 'home') {
         stopBgm2(); playBgm1(); currentTrackRef.current = 'home';
@@ -94,18 +107,6 @@ function App() {
       }
     }
   }, [showPreloader, startHero, currentPage, playBgm1, stopBgm1, playBgm2, stopBgm2]);
-
-  useEffect(() => {
-    THREE.DefaultLoadingManager.onStart = () => setHonestLoadProgress(1);
-    THREE.DefaultLoadingManager.onProgress = (_url, itemsLoaded, itemsTotal) => {
-        setHonestLoadProgress(Math.max(1, Math.round((itemsLoaded / itemsTotal) * 100)));
-    };
-    THREE.DefaultLoadingManager.onLoad = () => setHonestLoadProgress(100);
-    THREE.DefaultLoadingManager.onError = () => setHonestLoadProgress(100);
-
-    const loader = new GLTFLoader();
-    ASSET_PATHS.forEach((path) => loader.load(path, () => {}));
-  }, []);
 
   useEffect(() => {
     const handleScrollState = () => {
@@ -166,7 +167,6 @@ function App() {
         e.stopImmediatePropagation(); return;
       }
       const currentIndex = Math.round(window.scrollY / window.innerHeight);
-      // 🔥 ТЕПЕРЬ 7 СЕКЦИЙ НА СТРАНИЦЕ СТЕКА
       const totalSections = currentPage === 'home' ? 6 : 7; 
 
       if (e.deltaY > 0 && currentIndex < totalSections - 1) {
@@ -185,7 +185,7 @@ function App() {
       const deltaY = touchStartY - touchEndY;
       if (Math.abs(deltaY) > 50) {
         const currentIndex = Math.round(window.scrollY / window.innerHeight);
-        const totalSections = currentPage === 'home' ? 6 : 7; // 🔥 ТЕПЕРЬ 7 СЕКЦИЙ
+        const totalSections = currentPage === 'home' ? 6 : 7; 
 
         if (deltaY > 0 && currentIndex < totalSections - 1) {
           playScrollRef.current({ id: 'trimmedClick' }); scrollToSection(currentIndex + 1);
@@ -222,8 +222,9 @@ function App() {
   const isHeaderVisible = startHero && (currentPage !== 'home' || currentSection > 0);
 
   return (
-    <div className="relative w-full bg-black min-h-screen">
-      {showPreloader && <Preloader onStartTransition={() => setStartHero(true)} onComplete={() => setShowPreloader(false)} progress={honestLoadProgress} />}
+    <div className="relative w-full bg-black min-h-screen select-none">
+      {showPreloader && <Preloader onStartTransition={() => setStartHero(true)} onComplete={() => setShowPreloader(false)} progress={smoothProgress} />}
+      
       {startHero && <SoundToggle />}
       <Header isVisible={isHeaderVisible} onHomeClick={handleNavigateToHome} onStackClick={handleNavigateToStack} />
 
@@ -256,12 +257,12 @@ function App() {
             <DatabasesDev />
             <DevOpsDev /> 
             <ApiIntegrationDev />
-            <PromoStackOne /> {/* 🔥 ДОБАВИЛИ ФИНАЛЬНЫЙ ЭКРАН 1 */}
-            <PromoStackTwo /> {/* 🔥 ДОБАВИЛИ ФИНАЛЬНЫЙ ЭКРАН 2 */}
+            <PromoStackOne /> 
+            <PromoStackTwo /> 
           </div>
 
           <ScrollArrow
-            isVisible={currentSection < 6} // 🔥 СТРЕЛОЧКА ИСЧЕЗАЕТ ТОЛЬКО НА ПОСЛЕДНЕЙ (7-Й) СЕКЦИИ
+            isVisible={currentSection < 6} 
             onScrollDown={() => {
               const currentIndex = Math.round(window.scrollY / window.innerHeight);
               if (currentIndex < 6) {
