@@ -25,7 +25,6 @@ import PromoStackOne from "./components/stack/PromoStackOne";
 import PromoStackTwo from "./components/stack/PromoStackTwo"; 
 import StackBg from "./components/stack/StackBg";
 
-import * as THREE from 'three'; 
 import { useProgress, useGLTF } from '@react-three/drei'; 
 
 import laptopPath from './assets/models/laptop.glb?url';
