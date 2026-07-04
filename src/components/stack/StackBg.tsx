@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three-stdlib';
 
 import laptopPath from '../../assets/models/laptop.glb?url';
-import platformPath from '../../assets/models/platform.glb?url';
+import platformPath from '../../assets/models/platform3.glb?url';
 import spaceFirePath from '../../assets/models/spaceFire.glb?url'; 
 import serverPath from '../../assets/models/server.glb?url';
 import databasesPath from '../../assets/models/databases.glb?url';
@@ -13,7 +13,6 @@ import devopsPath from '../../assets/models/devops.glb?url';
 import apiPath from '../../assets/models/ApiIntegration.glb?url'; 
 import quakePath from '../../assets/sounds/quake.mp3'; 
 
-// 🔥 ДОБАВИЛИ ПАРАМЕТР ROTATION В ЗАГРУЗЧИК
 function Model({ url, scale = 1, position = [0, 0, 0], rotation = [0, 0, 0] }: { url: string; scale?: number; position?: [number, number, number]; rotation?: [number, number, number] }) {
     const [model, setModel] = useState<THREE.Group | null>(null);
     useEffect(() => {
@@ -37,14 +36,17 @@ function SpaceFireModel({ url, scale = 1, position = [0, 0, 0] }: { url: string;
     return <primitive object={scene} scale={scale} position={position} />;
 }
 
-function SpaceFireBackground({ phase }: { phase: string }) {
+// 🔥 ДОБАВИЛИ isMobile ДЛЯ КОСТРА, ЧТОБЫ ОН ТОЖЕ ЦЕНТРИРОВАЛСЯ НА МОБИЛКАХ
+function SpaceFireBackground({ phase, isMobile }: { phase: string, isMobile: boolean }) {
     const bgRef = useRef<THREE.Group>(null);
     const currentZ = useRef(-300); 
 
     useFrame(() => {
         if (!bgRef.current) return;
-        const baseX = 9;
-        const baseY = -1;
+        
+        // На компе он справа (9), на мобиле по центру (0) и чуть ниже
+        const baseX = isMobile ? 0 : 9;
+        const baseY = isMobile ? -3.5 : -1; 
         const baseZ = -35;
 
         if (phase === 'bg-warp') {
@@ -127,6 +129,7 @@ function AnimatedScene({ phase, scrollProgress }: { phase: string, scrollProgres
         const sp2 = THREE.MathUtils.clamp(sp - 1, 0, 1);  
         const sp3 = THREE.MathUtils.clamp(sp - 2, 0, 1);  
         const sp4 = THREE.MathUtils.clamp(sp - 3, 0, 1);  
+        const sp5 = THREE.MathUtils.clamp(sp - 4, 0, 1); 
 
         if (parentRef.current) {
             parentRef.current.rotation.y += 0.003;
@@ -138,14 +141,18 @@ function AnimatedScene({ phase, scrollProgress }: { phase: string, scrollProgres
                 currentRotZ.current = THREE.MathUtils.lerp(currentRotZ.current, 0, 0.04);
             }
 
+            const shrinkFactor = Math.max(0, 1 - sp5);
+            const baseS = currentScale.current * shrinkFactor;
+
             parentRef.current.position.y = currentY.current;
-            parentRef.current.scale.set(currentScale.current, currentScale.current, currentScale.current);
+            parentRef.current.scale.set(baseS, baseS, baseS);
             parentRef.current.rotation.x = currentRotX.current;
             parentRef.current.rotation.z = currentRotZ.current;
 
             if (phase === 'idle') {
                 const pulse = 1 + Math.sin(t * 1.5) * 0.01;
-                parentRef.current.scale.lerp(new THREE.Vector3(pulse, pulse, pulse), 0.1);
+                const finalScale = pulse * shrinkFactor;
+                parentRef.current.scale.lerp(new THREE.Vector3(finalScale, finalScale, finalScale), 0.1);
             }
         }
 
@@ -174,8 +181,8 @@ function AnimatedScene({ phase, scrollProgress }: { phase: string, scrollProgres
         }
 
         if (apiRef.current) {
-            apiRef.current.position.y = -15 + (sp4 * 15.5) + Math.sin(t + 8) * 0.15;
-            apiRef.current.rotation.y = (1 - sp4) * -Math.PI; 
+            apiRef.current.position.y = -15 + (sp4 * 15.5) + (sp5 * 15) + Math.sin(t + 8) * 0.15;
+            apiRef.current.rotation.y = (1 - sp4) * -Math.PI + (sp5 * Math.PI); 
             apiRef.current.scale.setScalar(0.5 + sp4 * 0.5); 
         }
     });
@@ -186,7 +193,6 @@ function AnimatedScene({ phase, scrollProgress }: { phase: string, scrollProgres
             <FloatingTechParticles /> 
             
             <group ref={laptopRef}>
-                {/* 🔥 РАЗВЕРНУЛИ НОУТ НА 180 ГРАДУСОВ (Math.PI) */}
                 <Model url={laptopPath} scale={2} position={[0, 0, 0]} rotation={[0, Math.PI, 0]} />
                 <spotLight position={[0, 0.2, 0]} angle={0.5} penumbra={1} intensity={6} color="#ffaa00" distance={3} />
             </group>
@@ -197,7 +203,6 @@ function AnimatedScene({ phase, scrollProgress }: { phase: string, scrollProgres
             </group>
 
             <group ref={dbRef}>
-                {/* 🔥 РАЗВЕРНУЛИ БАЗУ ДАННЫХ НА 180 ГРАДУСОВ (Math.PI) */}
                 <Model url={databasesPath} scale={2.5} position={[0, -1.5, 0]} rotation={[0, Math.PI, 0]} />
                 <spotLight position={[0, 0.2, 0]} angle={0.5} penumbra={1} intensity={8} color="#8A2BE2" distance={4} />
             </group>
@@ -215,10 +220,12 @@ function AnimatedScene({ phase, scrollProgress }: { phase: string, scrollProgres
     );
 }
 
-function SceneWrapper({ mouse, phase, shakeIntensity, setShakeIntensity, scrollProgress }: any) {
+function SceneWrapper({ mouse, phase, shakeIntensity, setShakeIntensity, scrollProgress, isMobile }: any) {
     const rootRef = useRef<THREE.Group>(null);
     const { camera } = useThree();
     
+    const lookAtTarget = useRef(new THREE.Vector3(0, -0.5, 0));
+
     useFrame(() => {
         if (!rootRef.current) return;
         
@@ -231,18 +238,34 @@ function SceneWrapper({ mouse, phase, shakeIntensity, setShakeIntensity, scrollP
             rootRef.current.position.y = 0;
         }
 
-        const targetCamX = mouse.x * 0.6; 
-        const targetCamY = 1 + mouse.y * 0.4;
+        const flyProgress = THREE.MathUtils.clamp((scrollProgress - 4) / 2, 0, 1);
+
+        // 🔥 КАМЕРА ЦЕЛИТСЯ ИДЕАЛЬНО В КОСТЕР
+        const targetCamX = THREE.MathUtils.lerp(0, isMobile ? 0 : 7.5, flyProgress) + mouse.x * 0.6; 
+        const targetCamY = THREE.MathUtils.lerp(1, isMobile ? -1.5 : -0.2, flyProgress) + mouse.y * 0.4;
+        const targetCamZ = THREE.MathUtils.lerp(9, isMobile ? -22 : -26, flyProgress); // На мобиле отлетаем чуть дальше (-22), чтобы было видно
         
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetCamX, 0.03);
         camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetCamY, 0.03);
-        camera.lookAt(0, -0.5, 0);
+        camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetCamZ, 0.03);
+        
+        // Взгляд камеры
+        const targetLookX = THREE.MathUtils.lerp(0, isMobile ? 0 : 9, flyProgress);
+        const targetLookY = THREE.MathUtils.lerp(-0.5, isMobile ? -3.5 : -1, flyProgress); // Опускаем взгляд на костер
+        const targetLookZ = THREE.MathUtils.lerp(0, -35, flyProgress);
+
+        lookAtTarget.current.x = THREE.MathUtils.lerp(lookAtTarget.current.x, targetLookX, 0.03);
+        lookAtTarget.current.y = THREE.MathUtils.lerp(lookAtTarget.current.y, targetLookY, 0.03);
+        lookAtTarget.current.z = THREE.MathUtils.lerp(lookAtTarget.current.z, targetLookZ, 0.03);
+
+        camera.lookAt(lookAtTarget.current);
     });
 
     return (
         <group ref={rootRef}>
-            <SpaceFireBackground phase={phase} />
-            <group position={[-2.5, 0, 0]}>
+            {/* 🔥 ПРОКИНУЛИ isMobile, ТЕПЕРЬ КОСТЕР ЦЕНТРУЕТСЯ */}
+            <SpaceFireBackground phase={phase} isMobile={isMobile} />
+            <group position={isMobile ? [0, -1.5, -2] : [-2.5, 0, 0]} scale={isMobile ? 0.75 : 1}>
                 <AnimatedScene phase={phase} scrollProgress={scrollProgress} />
             </group>
         </group>
@@ -254,8 +277,13 @@ const StackBg = () => {
     const [phase, setPhase] = useState<'bg-warp' | 'impact' | 'sliding' | 'idle'>('bg-warp');
     const [shakeIntensity, setShakeIntensity] = useState(0);
     const [scrollProgress, setScrollProgress] = useState(0);
+    
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
     useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+
         const handleMouseMove = (e: MouseEvent) => {
             setMouse({
                 x: (e.clientX / window.innerWidth) * 2 - 1,
@@ -288,6 +316,7 @@ const StackBg = () => {
         }, 2800);
 
         return () => { 
+            window.removeEventListener('resize', handleResize);
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('scroll', handleScroll);
             clearTimeout(t1);
@@ -301,7 +330,7 @@ const StackBg = () => {
             <Canvas camera={{ position: [0, 1, 9], fov: 45 }}> 
                 <ambientLight intensity={0.3} />
                 <Environment preset="city" />
-                <SceneWrapper mouse={mouse} phase={phase} shakeIntensity={shakeIntensity} setShakeIntensity={setShakeIntensity} scrollProgress={scrollProgress} />
+                <SceneWrapper mouse={mouse} phase={phase} shakeIntensity={shakeIntensity} setShakeIntensity={setShakeIntensity} scrollProgress={scrollProgress} isMobile={isMobile} />
             </Canvas>
         </div>
     );

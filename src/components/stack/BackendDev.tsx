@@ -22,9 +22,9 @@ const BackendDev = () => {
 
     return (
         <section ref={sectionRef} className="relative w-full h-screen overflow-hidden">
-            <div className={`absolute left-1/2 ml-50 inset-0 z-10 flex flex-col items-center justify-center pointer-events-none transition-all ease-out 
+            <div className={`absolute inset-0 md:left-1/2 z-10 flex flex-col items-center justify-center pointer-events-none px-4 text-center transition-all ease-out 
                 ${textState === 'visible' 
-                    ? 'opacity-100 translate-y-0 blur-0 duration-[1200ms] delay-[300ms]' 
+                    ? 'opacity-100 translate-y-0 blur-0 duration-[1200ms] delay-[500ms]' 
                     : textState === 'hidden-top' 
                         ? 'opacity-0 -translate-y-[80vh] blur-md duration-[500ms] delay-0' 
                         : 'opacity-0 translate-y-[80vh] blur-md duration-[500ms] delay-0'}`}>

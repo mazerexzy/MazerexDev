@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
 const FrontendDev = () => {
-    // 🔥 Теперь у нас 3 состояния: видим, спрятан сверху, спрятан снизу
     const [textState, setTextState] = useState<'hidden-top' | 'hidden-bottom' | 'visible'>('hidden-bottom');
     const sectionRef = useRef<HTMLDivElement>(null);
     const isReady = useRef(false);
@@ -19,7 +18,6 @@ const FrontendDev = () => {
                     if (entry.isIntersecting) {
                         setTextState('visible');
                     } else {
-                        // Если top < 0, значит секция осталась выше экрана (улетела наверх)
                         setTextState(entry.boundingClientRect.top < 0 ? 'hidden-top' : 'hidden-bottom');
                     }
                 }
@@ -28,7 +26,6 @@ const FrontendDev = () => {
         );
 
         if (sectionRef.current) observer.observe(sectionRef.current);
-
         return () => {
             window.removeEventListener('show-frontend-text', handleShow);
             if (sectionRef.current) observer.unobserve(sectionRef.current);
@@ -37,9 +34,10 @@ const FrontendDev = () => {
 
     return (
         <section ref={sectionRef} className="relative w-full h-screen overflow-hidden">
-            <div className={`absolute left-1/2 ml-50 inset-0 z-10 flex flex-col items-center justify-center pointer-events-none transition-all ease-out 
+            {/* 🔥 АДАПТИВ: md:left-1/2 для компа, inset-0 и px-4 для центровки на мобилках */}
+            <div className={`absolute inset-0 md:left-1/2 z-10 flex flex-col items-center justify-center pointer-events-none px-4 text-center transition-all ease-out 
                 ${textState === 'visible' 
-                    ? 'opacity-100 translate-y-0 blur-0 duration-[1200ms] delay-[300ms]' 
+                    ? 'opacity-100 translate-y-0 blur-0 duration-[1200ms] delay-[500ms]' 
                     : textState === 'hidden-top' 
                         ? 'opacity-0 -translate-y-[80vh] blur-md duration-[500ms] delay-0' 
                         : 'opacity-0 translate-y-[80vh] blur-md duration-[500ms] delay-0'}`}>

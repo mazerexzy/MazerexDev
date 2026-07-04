@@ -20,7 +20,9 @@ import FrontendDev from "./components/stack/FrontendDev";
 import BackendDev from "./components/stack/BackendDev"; 
 import DatabasesDev from "./components/stack/DatabasesDev"; 
 import DevOpsDev from "./components/stack/DevOpsDev"; 
-import ApiIntegrationDev from "./components/stack/ApiIntegrationDev"; // 🔥 ИМПОРТ API КОМПОНЕНТА
+import ApiIntegrationDev from "./components/stack/ApiIntegrationDev";
+import PromoStackOne from "./components/stack/PromoStackOne"; // 🔥 ИМПОРТ 1
+import PromoStackTwo from "./components/stack/PromoStackTwo"; // 🔥 ИМПОРТ 2
 import StackBg from "./components/stack/StackBg";
 
 import * as THREE from 'three'; 
@@ -31,7 +33,7 @@ import platformPath from './assets/models/platform3.glb?url';
 import serverPath from './assets/models/server.glb?url'; 
 import databasesPath from './assets/models/databases.glb?url';
 import devopsPath from './assets/models/devops.glb?url';
-import apiPath from './assets/models/ApiIntegration.glb?url'; // 🔥 ИМПОРТ API МОДЕЛИ
+import apiPath from './assets/models/ApiIntegration.glb?url'; 
 
 const ASSET_PATHS = [
   laptopPath, 
@@ -39,7 +41,7 @@ const ASSET_PATHS = [
   serverPath, 
   databasesPath,
   devopsPath,
-  apiPath, // 🔥 ДОБАВИЛИ В ПРЕЛОАДЕР
+  apiPath, 
   '/models/earth_globe.glb' 
 ];
 
@@ -164,8 +166,8 @@ function App() {
         e.stopImmediatePropagation(); return;
       }
       const currentIndex = Math.round(window.scrollY / window.innerHeight);
-      // 🔥 ТЕПЕРЬ 5 СЕКЦИЙ НА СТРАНИЦЕ СТЕКА
-      const totalSections = currentPage === 'home' ? 6 : 5; 
+      // 🔥 ТЕПЕРЬ 7 СЕКЦИЙ НА СТРАНИЦЕ СТЕКА
+      const totalSections = currentPage === 'home' ? 6 : 7; 
 
       if (e.deltaY > 0 && currentIndex < totalSections - 1) {
         playScrollRef.current({ id: 'trimmedClick' }); scrollToSection(currentIndex + 1);
@@ -183,7 +185,7 @@ function App() {
       const deltaY = touchStartY - touchEndY;
       if (Math.abs(deltaY) > 50) {
         const currentIndex = Math.round(window.scrollY / window.innerHeight);
-        const totalSections = currentPage === 'home' ? 6 : 5; // 🔥 ТЕПЕРЬ 5 СЕКЦИЙ
+        const totalSections = currentPage === 'home' ? 6 : 7; // 🔥 ТЕПЕРЬ 7 СЕКЦИЙ
 
         if (deltaY > 0 && currentIndex < totalSections - 1) {
           playScrollRef.current({ id: 'trimmedClick' }); scrollToSection(currentIndex + 1);
@@ -253,14 +255,16 @@ function App() {
             <BackendDev />
             <DatabasesDev />
             <DevOpsDev /> 
-            <ApiIntegrationDev /> {/* 🔥 ДОБАВИЛИ API В КОЛОНКУ */}
+            <ApiIntegrationDev />
+            <PromoStackOne /> {/* 🔥 ДОБАВИЛИ ФИНАЛЬНЫЙ ЭКРАН 1 */}
+            <PromoStackTwo /> {/* 🔥 ДОБАВИЛИ ФИНАЛЬНЫЙ ЭКРАН 2 */}
           </div>
 
           <ScrollArrow
-            isVisible={currentSection < 4} // 🔥 СТРЕЛОЧКА ИСЧЕЗАЕТ ТОЛЬКО НА ПОСЛЕДНЕЙ (5-Й) СЕКЦИИ
+            isVisible={currentSection < 6} // 🔥 СТРЕЛОЧКА ИСЧЕЗАЕТ ТОЛЬКО НА ПОСЛЕДНЕЙ (7-Й) СЕКЦИИ
             onScrollDown={() => {
               const currentIndex = Math.round(window.scrollY / window.innerHeight);
-              if (currentIndex < 4) {
+              if (currentIndex < 6) {
                 playScroll({ id: 'trimmedClick' });
                 scrollToSection(currentIndex + 1);
               }
