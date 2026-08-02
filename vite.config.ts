@@ -8,5 +8,8 @@ export default defineConfig({
     tailwindcss(),
   ],
   assetsInclude: ['**/*.glb', '**/*.gltf'],
-  base: '/MazerexDev/',
+  // GitHub Pages отдаёт сайт из подпапки /MazerexDev/, а Cloudflare Pages —
+  // из корня. CF_PAGES проставляется самим Cloudflare во время сборки, поэтому
+  // один и тот же репозиторий корректно собирается под оба хостинга.
+  base: process.env.CF_PAGES ? '/' : '/MazerexDev/',
 })
