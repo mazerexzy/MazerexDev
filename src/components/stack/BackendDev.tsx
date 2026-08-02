@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { useT } from '../../i18n/useT';
 
 const BackendDev = () => {
+    const t = useT();
     const [textState, setTextState] = useState<'hidden-top' | 'hidden-bottom' | 'visible'>('hidden-bottom');
     const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -29,7 +31,7 @@ const BackendDev = () => {
                         ? 'opacity-0 -translate-y-[80vh] blur-md duration-[500ms] delay-0' 
                         : 'opacity-0 translate-y-[80vh] blur-md duration-[500ms] delay-0'}`}>
                 <h2 className="text-4xl md:text-5xl font-gdblack text-white leading-tight [text-shadow:-0.5px_0.5px_0px_#8A2BE2,_-1px_1px_0px_#FF1493,_-1.5px_1.5px_0px_#FF0000]">
-                    Backend Development.
+                    {t('backendTitle')}
                 </h2>
             </div>
         </section>

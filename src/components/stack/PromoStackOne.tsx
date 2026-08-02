@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { useT, splitLines } from '../../i18n/useT';
 
 const PromoStackOne = () => {
+    const t = useT();
     const [textState, setTextState] = useState<'hidden-top' | 'hidden-bottom' | 'visible'>('hidden-bottom');
     const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +36,9 @@ const PromoStackOne = () => {
                         : 'opacity-0 translate-y-[30vh] blur-md duration-[500ms] delay-0'}`}>
                 
                 <h2 className="text-4xl md:text-6xl lg:text-7xl font-gdblack [text-shadow:-0.5px_0.5px_0px_#8A2BE2,_-1px_1px_0px_#FF1493,_-1.5px_1.5px_0px_#FF0000] text-white text-center leading-tight tracking-wide">
-                    I don't have bugs, I just create<br/>features. ↯
+                    {splitLines(t('promoOne')).map((line, i) => (
+                        <span key={i}>{line}{i === 0 && <br />}</span>
+                    ))}
                 </h2>
             </div>
         </section>

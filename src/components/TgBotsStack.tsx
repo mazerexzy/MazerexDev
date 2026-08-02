@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { useT } from '../i18n/useT';
 
 const TgBotsStack = () => {
+    const t = useT();
     // Стейт для блюра и выезда
     const [viewState, setViewState] = useState<'hidden-bottom' | 'visible' | 'hidden-top'>('hidden-bottom');
     const sectionRef = useRef<HTMLElement>(null);
@@ -43,11 +45,11 @@ const TgBotsStack = () => {
                 <div className={`transition-all duration-1000 ease-out ${getAnimClasses('delay-300')}`}>
 
                     <h2 className="text-5xl md:text-7xl font-gdblack text-white leading-tight [text-shadow:-0.5px_0.5px_0px_#8A2BE2,_-1px_1px_0px_#FF1493,_-1.5px_1.5px_0px_#FF0000]">
-                        Telegram Bots.
+                        {t('botsTitle')}
                     </h2>
 
                     <p className="mt-6 text-base md:text-lg text-white font-gdmed leading-relaxed max-w-xl">
-                        Complex logic: payments, API, FSM Bot infrastructure (server, storage, logic). Integration with 3rd party services (payment systems, exchanges, etc.). I can create a bot for any task you need.
+                        {t('botsText')}
                     </p>
 
                 </div>

@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import useSound from 'use-sound';
 import hoverSound from '../assets/sounds/hover.mp3';
 import clickSound from "../assets/sounds/click.mp3";
+import { useT } from '../i18n/useT';
 
 const FullChaos = ({ onNavigate }: { onNavigate: () => void }) => {
+    const t = useT();
     const [viewState, setViewState] = useState<'hidden-bottom' | 'visible' | 'hidden-top'>('hidden-bottom');
     const [isTransitioning, setIsTransitioning] = useState(false);
     const sectionRef = useRef<HTMLElement>(null);
@@ -63,7 +65,7 @@ const FullChaos = ({ onNavigate }: { onNavigate: () => void }) => {
         <section ref={sectionRef} className="relative w-full h-[100dvh] pointer-events-none snap-start overflow-hidden flex flex-col items-center justify-center">
             <div className={`relative mt-16 md:mt-0 transition-all duration-1000 ease-out z-20 flex flex-col items-center justify-center w-[90%] md:w-full px-4 md:px-0 pointer-events-auto scale-90 md:scale-100 ${getAnimClasses('delay-300')}`}>
                 <h2 className="text-5xl md:text-6xl font-gdblack text-white leading-tight text-center mb-10 tracking-tight [text-shadow:0px_0px_20px_rgba(255,0,255,0.5)]">
-                    Full stack, full chaos ↯
+                    {t('chaosTitle')}
                 </h2>
 
                 <button 
@@ -72,7 +74,7 @@ const FullChaos = ({ onNavigate }: { onNavigate: () => void }) => {
                     className={`bg-white cursor-pointer text-[#483D8B] px-10 py-5 rounded-full font-gdblack text-xl shadow-[0_0_30px_white] hover:text-white hover:bg-[#483D8B] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]
                         ${isTransitioning ? 'scale-[4] opacity-0 blur-sm transition-all duration-1000 ease-in' : 'transition-all duration-300'}`}
                 >
-                    Discover the stack
+                    {t('chaosCta')}
                 </button>
             </div>
         </section>

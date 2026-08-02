@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { useT, splitLines } from '../i18n/useT';
 
 const WebStack = () => {
+    const t = useT();
     const [viewState, setViewState] = useState<'hidden-bottom' | 'visible' | 'hidden-top'>('hidden-bottom');
     const sectionRef = useRef<HTMLElement>(null);
 
@@ -42,11 +44,13 @@ const WebStack = () => {
                 <div className={`transition-all duration-1000 ease-out ${getAnimClasses('delay-300')}`}>
 
                     <h2 className="text-4xl md:text-5xl font-gdblack text-white leading-tight [text-shadow:-0.5px_0.5px_0px_#8A2BE2,_-1px_1px_0px_#FF1493,_-1.5px_1.5px_0px_#FF0000]">
-                        Web <br /> Development.
+                        {splitLines(t('webTitle')).map((line, i) => (
+                            <span key={i}>{line}{i === 0 && <br />}</span>
+                        ))}
                     </h2>
 
                     <p className="mt-6 text-sm md:text-base text-white font-gdmed leading-relaxed">
-                        I create fast, secure and scalable websites and web applications. I can take care of the frontend, backend, database, server, API, security, optimization, and everything in between. I have experience with a wide range of technologies and frameworks, and I can adapt to any project requirements.
+                        {t('webText')}
                     </p>
 
                 </div>

@@ -3,6 +3,7 @@ import { Howler } from 'howler';
 import useSound from 'use-sound';
 import clickSound from "../assets/sounds/click.mp3";
 import hoverSound from '../assets/sounds/hover.mp3';
+import { setSfxMuted } from '../utils/sfx';
 
 export default function SoundToggle() {
   const [isMuted, setIsMuted] = useState(false);
@@ -26,7 +27,8 @@ export default function SoundToggle() {
   const toggleSound = () => {
     const newState = !isMuted;
     setIsMuted(newState);
-    Howler.mute(newState);
+    Howler.mute(newState);   // звуки через use-sound (клики, ховеры, фон)
+    setSfxMuted(newState);   // звуки сцен (тряска/удар) — они мимо Howler
   };
 
   return (

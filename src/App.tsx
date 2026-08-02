@@ -12,6 +12,7 @@ import FullChaos from "./components/FullChaos";
 import useSound from 'use-sound';
 import scrollSound from "./assets/sounds/scroll.mp3";
 import SoundToggle from "./components/SoundToggle";
+import LanguageToggle from "./components/LanguageToggle";
 import bgmSound1 from "./assets/sounds/Aphex Twin - Heliosphan (SPOTISAVER).mp3";
 import bgmSound2 from "./assets/sounds/Aphex Twin - Heliosphan (SPOTISAVER).mp3"; 
 import Header from "./components/Header"; 
@@ -25,7 +26,23 @@ import PromoStackOne from "./components/stack/PromoStackOne";
 import PromoStackTwo from "./components/stack/PromoStackTwo"; 
 import StackBg from "./components/stack/StackBg";
 
-import { useProgress, useGLTF } from '@react-three/drei'; 
+import AboutBg from "./components/about/AboutBg";
+import AboutSectionOne from "./components/about/AboutSectionOne";
+import AboutSectionTwo from "./components/about/AboutSectionTwo";
+import AboutSectionThree from "./components/about/AboutSectionThree"; 
+import AboutSectionFour from "./components/about/AboutSectionFour";
+import AboutSectionFive from "./components/about/AboutSectionFive"; 
+import AboutSectionSix from "./components/about/AboutSectionSix";
+
+import ContactBg from "./components/contact/ContactBg";
+import ContactSection from "./components/contact/ContactSection";
+
+import ReviewsBg from "./components/reviews/ReviewsBg";
+import ReviewsSection from "./components/reviews/ReviewsSection";
+import SceneErrorBoundary from "./components/reviews/SceneErrorBoundary";
+import CustomCursor from "./components/reviews/CustomCursor";
+
+import { useProgress, useGLTF } from '@react-three/drei';
 
 import laptopPath from './assets/models/laptop.glb?url';
 import platformPath from './assets/models/platform.glb?url';
@@ -34,16 +51,18 @@ import databasesPath from './assets/models/databases.glb?url';
 import devopsPath from './assets/models/devops.glb?url';
 import apiPath from './assets/models/ApiIntegration.glb?url'; 
 import spaceFirePath from './assets/models/spaceFire.glb?url'; 
+import islandPath from './assets/models/NeonIsland.glb?url';
+import skyPath from './assets/models/Sky.glb?url';
+import batPath from './assets/models/AnimatedBat.glb?url';
+import galaxyPhonePath from './assets/models/galaxyphone.glb?url';
+import ghostPath from './assets/models/gostly.glb?url';
 
+// Все .glb, которые реально используются на страницах. Раньше здесь не было
+// gostly.glb (8.8 МБ, призрак на About) — он качался лениво при заходе на
+// страницу и давал лаг; а '/models/earth_globe.glb' был битым путём (404).
 const ASSET_PATHS = [
-  laptopPath, 
-  platformPath,
-  serverPath, 
-  databasesPath,
-  devopsPath,
-  apiPath, 
-  spaceFirePath,
-  '/models/earth_globe.glb' 
+  laptopPath, platformPath, serverPath, databasesPath, devopsPath,
+  apiPath, spaceFirePath, islandPath, skyPath, batPath, galaxyPhonePath, ghostPath
 ];
 
 function App() {
@@ -52,25 +71,32 @@ function App() {
   const [isImpacted, setIsImpacted] = useState(false);
   const [isAnimationDone, setIsAnimationDone] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
-  const [currentPage, setCurrentPage] = useState<'home' | 'stack'>('home');
+  
+  const [currentPage, setCurrentPage] = useState<'home' | 'stack' | 'about' | 'contact' | 'reviews'>('home');
   const [isReturnTrip, setIsReturnTrip] = useState(false);
+  const [isContactClosing, setIsContactClosing] = useState(false);
+  const [contactInstanceKey] = useState(0);
+  const [isExiting, setIsExiting] = useState(false);
+  // На reviews текст появляется только после падения метеорита
+  const [reviewsImpacted, setReviewsImpacted] = useState(false);
 
-  const { progress } = useProgress(); 
+  const { progress, active } = useProgress();
   const [smoothProgress, setSmoothProgress] = useState(0);
+  const loadingStartedRef = useRef(false);
 
   const isAnimationDoneRef = useRef(false);
   const cooldownRef = useRef(false);
   const lenisRef = useRef<Lenis | null>(null);
   const isScrollingAnimatingRef = useRef(false);
   
-  const currentTrackRef = useRef<'none' | 'home' | 'stack'>('none');
+  const currentTrackRef = useRef<'none' | 'home' | 'stack' | 'about'>('none');
 
   const [playScroll] = useSound(scrollSound, {
     volume: 1,
     sprite: { trimmedClick: [250, 3000] },
   });
 
-  const [playBgm1, { stop: stopBgm1 }] = useSound(bgmSound1, { volume: 0.02, loop: true });
+  const [, { stop: stopBgm1 }] = useSound(bgmSound1, { volume: 0.02, loop: true });
   const [playBgm2, { stop: stopBgm2 }] = useSound(bgmSound2, { volume: 0.02, loop: true });
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -83,29 +109,55 @@ function App() {
 
   const playScrollRef = useRef(playScroll);
 
-  useEffect(() => {
-    playScrollRef.current = playScroll;
-  }, [playScroll]);
-
-  useEffect(() => {
-    if (progress > smoothProgress) {
-        setSmoothProgress(Math.round(progress));
-    }
-  }, [progress, smoothProgress]);
+  useEffect(() => { playScrollRef.current = playScroll; }, [playScroll]);
 
   useEffect(() => {
     ASSET_PATHS.forEach((path) => useGLTF.preload(path));
   }, []);
 
+  // Прогресс реальный (backed drei-менеджером), но с защитой от преждевременных
+  // 100%: показываем максимум 99, пока менеджер ещё активно грузит, и отдаём
+  // 100 только когда загрузка реально СТАРТОВАЛА и завершилась.
+  useEffect(() => {
+    if (active) loadingStartedRef.current = true;
+    setSmoothProgress((prev) => {
+      const p = Math.round(progress);
+      if (loadingStartedRef.current && !active && progress >= 100) return 100;
+      return Math.max(prev, Math.min(99, p));
+    });
+  }, [progress, active]);
+
+  // Кэш-случай: если за 800мс ничего не начало грузиться (всё уже в кэше),
+  // менеджер может вообще не сработать — тогда просто завершаем прелоудер.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (!loadingStartedRef.current) setSmoothProgress(100);
+    }, 800);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+      const handleNavAbout = () => {
+          setCurrentPage('about');
+          setCurrentSection(0);
+          window.scrollTo(0, 0);
+      };
+      window.addEventListener('navigate-about', handleNavAbout);
+      return () => window.removeEventListener('navigate-about', handleNavAbout);
+  }, []);
+
   useEffect(() => {
     if (!showPreloader && startHero) {
-      if (currentPage === 'home' && currentTrackRef.current !== 'home') {
-        stopBgm2(); playBgm1(); currentTrackRef.current = 'home';
-      } else if (currentPage === 'stack' && currentTrackRef.current !== 'stack') {
-        stopBgm1(); playBgm2(); currentTrackRef.current = 'stack';
+      if (currentPage === 'about' && currentTrackRef.current !== 'about') {
+        stopBgm1(); 
+        playBgm2();
+        currentTrackRef.current = 'about';
+      } else if (currentPage !== 'about' && currentTrackRef.current === 'about') {
+        stopBgm2();
+        currentTrackRef.current = 'none';
       }
     }
-  }, [showPreloader, startHero, currentPage, playBgm1, stopBgm1, playBgm2, stopBgm2]);
+  }, [showPreloader, startHero, currentPage, stopBgm1, playBgm2, stopBgm2]);
 
   useEffect(() => {
     const handleScrollState = () => {
@@ -128,20 +180,29 @@ function App() {
     }
   }, [isImpacted]);
 
-  const scrollToSection = (targetIndex: number) => {
-    if (!lenisRef.current || isScrollingAnimatingRef.current || cooldownRef.current) return;
-    if (currentPage === 'home' && !isAnimationDoneRef.current) return;
+  // Возвращает true, только если скролл реально начался. Нужно, чтобы звук
+  // проигрывался строго вместе со скроллом: раньше стрелка играла его ДО вызова
+  // и он срабатывал даже когда функция выходила по guard'ам (идёт анимация,
+  // кулдаун, не доиграла интро-анимация главной).
+  const scrollToSection = (targetIndex: number): boolean => {
+    if (!lenisRef.current || isScrollingAnimatingRef.current || cooldownRef.current) return false;
+    if (currentPage === 'home' && !isAnimationDoneRef.current) return false;
 
     isScrollingAnimatingRef.current = true;
 
+    const duration = currentPage === 'about' ? 2.5 : 1.5;
+    const easingFunc = currentPage === 'about' 
+        ? (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2 
+        : (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)); 
+
     lenisRef.current.scrollTo(targetIndex * window.innerHeight, {
-      duration: 1.5,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      duration: duration,
+      easing: easingFunc,
       lock: true,
       onComplete: () => { unlockScroll(); }
     });
 
-    setTimeout(() => { unlockScroll(); }, 1600);
+    setTimeout(() => { unlockScroll(); }, duration * 1000 + 100);
 
     function unlockScroll() {
       if (isScrollingAnimatingRef.current) {
@@ -150,28 +211,28 @@ function App() {
         setTimeout(() => { cooldownRef.current = false; }, 600);
       }
     }
+
+    return true;
   };
 
   useEffect(() => {
     if (showPreloader) return;
 
     lenisRef.current = new Lenis({ smoothWheel: false });
-
     function raf(time: number) { lenisRef.current?.raf(time); requestAnimationFrame(raf); }
     requestAnimationFrame(raf);
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      if (isScrollingAnimatingRef.current || cooldownRef.current) {
-        e.stopImmediatePropagation(); return;
-      }
+      if (isScrollingAnimatingRef.current || cooldownRef.current) { e.stopImmediatePropagation(); return; }
       const currentIndex = Math.round(window.scrollY / window.innerHeight);
-      const totalSections = currentPage === 'home' ? 6 : 7; 
+      
+      const totalSections = currentPage === 'home' ? 6 : currentPage === 'stack' ? 7 : currentPage === 'about' ? 6 : 1;
 
       if (e.deltaY > 0 && currentIndex < totalSections - 1) {
-        playScrollRef.current({ id: 'trimmedClick' }); scrollToSection(currentIndex + 1);
+        if (scrollToSection(currentIndex + 1)) playScrollRef.current({ id: 'trimmedClick' });
       } else if (e.deltaY < 0 && currentIndex > 0) {
-        playScrollRef.current({ id: 'trimmedClick' }); scrollToSection(currentIndex - 1);
+        if (scrollToSection(currentIndex - 1)) playScrollRef.current({ id: 'trimmedClick' });
       }
     };
 
@@ -184,12 +245,13 @@ function App() {
       const deltaY = touchStartY - touchEndY;
       if (Math.abs(deltaY) > 50) {
         const currentIndex = Math.round(window.scrollY / window.innerHeight);
-        const totalSections = currentPage === 'home' ? 6 : 7; 
+        
+        const totalSections = currentPage === 'home' ? 6 : currentPage === 'stack' ? 7 : currentPage === 'about' ? 6 : 1; 
 
         if (deltaY > 0 && currentIndex < totalSections - 1) {
-          playScrollRef.current({ id: 'trimmedClick' }); scrollToSection(currentIndex + 1);
+          if (scrollToSection(currentIndex + 1)) playScrollRef.current({ id: 'trimmedClick' });
         } else if (deltaY < 0 && currentIndex > 0) {
-          playScrollRef.current({ id: 'trimmedClick' }); scrollToSection(currentIndex - 1);
+          if (scrollToSection(currentIndex - 1)) playScrollRef.current({ id: 'trimmedClick' });
         }
       }
     };
@@ -208,39 +270,88 @@ function App() {
     };
   }, [currentPage, showPreloader]);
 
-  const handleNavigateToStack = () => {
-    if (currentPage !== 'stack') { setCurrentPage('stack'); setCurrentSection(0); window.scrollTo(0, 0); }
+  // 🔥 Уход через ХЭДЭР одинаковый на всех страницах: текст просто размывается
+  // и гаснет, полсекунды паузы — и страница меняется. Кинематографичные уходы
+  // (закрытие телефона на contact, отлёт камеры на stack/about) остались за
+  // кнопками внутри самих страниц.
+  const HEADER_EXIT_MS = 500;
+
+  const navigateTo = (page: 'home' | 'stack' | 'about' | 'contact' | 'reviews') => {
+    if (currentPage === page || isContactClosing || isExiting) return;
+
+    const applyPage = () => {
+      if (page === 'home') {
+        setIsImpacted(false); setIsAnimationDone(false); isAnimationDoneRef.current = false; setIsReturnTrip(true);
+      }
+      // сбрасываем, чтобы при следующем заходе на reviews текст снова ждал удара
+      setReviewsImpacted(false);
+      setCurrentPage(page);
+      setCurrentSection(0);
+      window.scrollTo(0, 0);
+    };
+
+    setIsExiting(true);
+    setTimeout(() => {
+      applyPage();
+      setIsExiting(false);
+    }, HEADER_EXIT_MS);
   };
 
-  const handleNavigateToHome = () => {
-    if (currentPage === 'home') { return; } else {
-      setIsImpacted(false); setIsAnimationDone(false); isAnimationDoneRef.current = false; setIsReturnTrip(true); setCurrentPage('home'); setCurrentSection(0); window.scrollTo(0, 0);
-    }
+  const handleNavigateToStack = () => navigateTo('stack');
+  const handleNavigateToAbout = () => navigateTo('about');
+  const handleNavigateToContact = () => navigateTo('contact');
+  const handleNavigateToHome = () => navigateTo('home');
+  const handleNavigateToReviews = () => navigateTo('reviews');
+
+  // Клик "What They Say About Me?" на contact — кинематографичный уход
+  // (крышка телефона + искажение объектива), затем переход на reviews.
+  const CONTACT_CINEMATIC_EXIT_MS = 1500; // закрытие крышки (~1.21s) + искажение, с запасом
+
+  const handleContactReviewsPreview = () => {
+    if (isContactClosing || isExiting) return;
+    setIsContactClosing(true);
+    setTimeout(() => {
+      setIsContactClosing(false);
+      setReviewsImpacted(false); // текст на reviews снова ждёт удара
+      setCurrentPage('reviews');
+      setCurrentSection(0);
+      window.scrollTo(0, 0);
+    }, CONTACT_CINEMATIC_EXIT_MS);
   };
 
   const isHeaderVisible = startHero && (currentPage !== 'home' || currentSection > 0);
+
+  // Размытие контента при уходе через хэдэр (фон/3D не трогаем — только тексты)
+  const exitFx = `transition-all duration-500 ease-in ${isExiting ? 'opacity-0 blur-lg' : 'opacity-100 blur-0'}`;
 
   return (
     <div className="relative w-full bg-black min-h-screen select-none">
       {showPreloader && <Preloader onStartTransition={() => setStartHero(true)} onComplete={() => setShowPreloader(false)} progress={smoothProgress} />}
       
       {startHero && <SoundToggle />}
-      <Header isVisible={isHeaderVisible} onHomeClick={handleNavigateToHome} onStackClick={handleNavigateToStack} />
+      {startHero && <LanguageToggle />}
+      
+      {/* 🔥 ИСПРАВЛЕНИЕ: Передали currentPage в Header */}
+      <Header 
+        isVisible={isHeaderVisible} 
+        currentPage={currentPage}
+        onHomeClick={handleNavigateToHome} 
+        onStackClick={handleNavigateToStack}
+        onAboutClick={handleNavigateToAbout}
+        onContactClick={handleNavigateToContact}
+        onReviewsClick={handleNavigateToReviews}
+      />
 
       {currentPage === 'home' && startHero && (
         <>
           <BgPlanet3D onImpact={() => setIsImpacted(true)} isMobile={isMobile} isReturnTrip={isReturnTrip} />
-          <div className="relative z-10">
+          <div className={`relative z-10 ${exitFx}`}>
             <Hero isImpacted={isImpacted} />
-            <WebStack />
-            <DevOpsStack />
-            <TgBotsStack />
-            <OptimizationSec />
-            <FullChaos onNavigate={handleNavigateToStack} />
+            <WebStack /> <DevOpsStack /> <TgBotsStack /> <OptimizationSec /> <FullChaos onNavigate={handleNavigateToStack} />
           </div>
           <ScrollArrow isVisible={isImpacted && isAnimationDone && currentSection < 5} onScrollDown={() => {
               const currentIndex = Math.round(window.scrollY / window.innerHeight);
-              if (currentIndex < 5) { playScroll({ id: 'trimmedClick' }); scrollToSection(currentIndex + 1); }
+              if (currentIndex < 5) { if (scrollToSection(currentIndex + 1)) playScroll({ id: 'trimmedClick' }); }
             }}
           />
         </>
@@ -249,29 +360,52 @@ function App() {
       {currentPage === 'stack' && (
         <>
           <StackBg />
-          
-          <div className="relative z-10 w-full flex flex-col">
-            <FrontendDev />
-            <BackendDev />
-            <DatabasesDev />
-            <DevOpsDev /> 
-            <ApiIntegrationDev />
-            <PromoStackOne /> 
-            <PromoStackTwo /> 
+          <div className={`relative z-10 w-full flex flex-col ${exitFx}`}>
+            <FrontendDev /> <BackendDev /> <DatabasesDev /> <DevOpsDev /> <ApiIntegrationDev /> <PromoStackOne /> <PromoStackTwo /> 
           </div>
-
-          <ScrollArrow
-            isVisible={currentSection < 6} 
-            onScrollDown={() => {
+          <ScrollArrow isVisible={currentSection < 6} onScrollDown={() => {
               const currentIndex = Math.round(window.scrollY / window.innerHeight);
-              if (currentIndex < 6) {
-                playScroll({ id: 'trimmedClick' });
-                scrollToSection(currentIndex + 1);
-              }
+              if (currentIndex < 6) { if (scrollToSection(currentIndex + 1)) playScroll({ id: 'trimmedClick' }); }
             }}
           />
         </>
       )}
+
+      {currentPage === 'about' && (
+        <>
+          <AboutBg />
+          <div className={`relative z-10 w-full flex flex-col ${exitFx}`}>
+            <AboutSectionOne /> <AboutSectionTwo /> <AboutSectionThree /> <AboutSectionFour /> <AboutSectionFive /> <AboutSectionSix onNavigateContact={handleNavigateToContact} />
+          </div>
+          <ScrollArrow isVisible={currentSection < 5} onScrollDown={() => {
+              const currentIndex = Math.round(window.scrollY / window.innerHeight);
+              if (currentIndex < 5) { if (scrollToSection(currentIndex + 1)) playScroll({ id: 'trimmedClick' }); }
+            }}
+          />
+        </>
+      )}
+
+      {(currentPage === 'contact' || isContactClosing) && (
+        <>
+          <ContactBg key={contactInstanceKey} isClosing={isContactClosing} />
+          <div className={`relative z-10 w-full flex flex-col ${exitFx}`}>
+            <ContactSection isClosing={isContactClosing} onReviewsClick={handleContactReviewsPreview} />
+          </div>
+        </>
+      )}
+
+      {currentPage === 'reviews' && (
+        <>
+          <SceneErrorBoundary>
+            <ReviewsBg onImpact={() => setReviewsImpacted(true)} />
+          </SceneErrorBoundary>
+          <CustomCursor />
+          <div className={`relative z-10 w-full flex flex-col ${exitFx}`}>
+            <ReviewsSection isClosing={isExiting} revealed={reviewsImpacted} />
+          </div>
+        </>
+      )}
+
     </div>
   );
 }

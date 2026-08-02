@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Environment, Float, useGLTF, useAnimations } from '@react-three/drei';
+import { Environment, Float, useGLTF, useAnimations, Preload } from '@react-three/drei';
 import { useEffect, useState, useRef } from 'react';
 import * as THREE from 'three';
 
@@ -11,6 +11,15 @@ import databasesPath from '../../assets/models/databases.glb?url';
 import devopsPath from '../../assets/models/devops.glb?url'; 
 import apiPath from '../../assets/models/ApiIntegration.glb?url'; 
 import quakePath from '../../assets/sounds/quake.mp3'; 
+import ShockwaveDistortion from '../effects/ShockwaveDistortion';
+import WarmUpCompile from '../effects/WarmUpCompile';
+import { playSfx } from '../../utils/sfx';
+
+// Уход со Stack: камера улетает назад в космос. Длительность совпадает с
+// задержкой перед navigate-about в PromoStackTwo (800мс), чтобы переход
+// случился ровно в момент, когда камера набрала максимальную скорость.
+const WARP_OUT_DURATION = 0.8;
+const WARP_OUT_Z = 70;
 
 function Model({ url, scale = 1, position = [0, 0, 0], rotation = [0, 0, 0] }: { url: string; scale?: number; position?: [number, number, number]; rotation?: [number, number, number] }) {
     const { scene } = useGLTF(url);
@@ -32,7 +41,6 @@ function SpaceFireModel({ url, scale = 1, position = [0, 0, 0] }: { url: string;
     return <primitive object={scene} scale={scale} position={position} />;
 }
 
-// 🔥 ДОБАВИЛИ isMobile ДЛЯ КОСТРА, ЧТОБЫ ОН ТОЖЕ ЦЕНТРИРОВАЛСЯ НА МОБИЛКАХ
 function SpaceFireBackground({ phase, isMobile }: { phase: string, isMobile: boolean }) {
     const bgRef = useRef<THREE.Group>(null);
     const currentZ = useRef(-300); 
@@ -40,7 +48,6 @@ function SpaceFireBackground({ phase, isMobile }: { phase: string, isMobile: boo
     useFrame(() => {
         if (!bgRef.current) return;
         
-        // На компе он справа (9), на мобиле по центру (0) и чуть ниже
         const baseX = isMobile ? 0 : 9;
         const baseY = isMobile ? -3.5 : -1; 
         const baseZ = -35;
@@ -128,9 +135,10 @@ function AnimatedScene({ phase, scrollProgress }: { phase: string, scrollProgres
         const sp5 = THREE.MathUtils.clamp(sp - 4, 0, 1); 
 
         if (parentRef.current) {
-            parentRef.current.rotation.y += 0.003;
+            // 🔥 Во время варпа платформа крутится чуть быстрее для динамики
+            parentRef.current.rotation.y += phase === 'warp-out' ? 0.02 : 0.003;
 
-            if (phase === 'sliding' || phase === 'idle') {
+            if (phase === 'sliding' || phase === 'idle' || phase === 'warp-out') {
                 currentY.current = THREE.MathUtils.lerp(currentY.current, 0, 0.04);
                 currentScale.current = THREE.MathUtils.lerp(currentScale.current, 1, 0.04);
                 currentRotX.current = THREE.MathUtils.lerp(currentRotX.current, 0, 0.04);
@@ -190,27 +198,27 @@ function AnimatedScene({ phase, scrollProgress }: { phase: string, scrollProgres
             
             <group ref={laptopRef}>
                 <Model url={laptopPath} scale={2} position={[0, 0, 0]} rotation={[0, Math.PI, 0]} />
-                <spotLight position={[0, 0.2, 0]} angle={0.5} penumbra={1} intensity={6} color="#ffaa00" distance={3} />
+                <pointLight position={[0, 0.2, 0]} intensity={6} color="#ffaa00" distance={3} />
             </group>
 
             <group ref={serverRef}>
                 <Model url={serverPath} scale={2.5} position={[0, 0, 0]} />
-                <spotLight position={[0, 0.2, 0]} angle={0.5} penumbra={1} intensity={8} color="#00ff88" distance={4} />
+                <pointLight position={[0, 0.2, 0]} intensity={8} color="#00ff88" distance={4} />
             </group>
 
             <group ref={dbRef}>
                 <Model url={databasesPath} scale={2.5} position={[0, -1.5, 0]} rotation={[0, Math.PI, 0]} />
-                <spotLight position={[0, 0.2, 0]} angle={0.5} penumbra={1} intensity={8} color="#8A2BE2" distance={4} />
+                <pointLight position={[0, 0.2, 0]} intensity={8} color="#8A2BE2" distance={4} />
             </group>
 
             <group ref={devopsRef}>
                 <Model url={devopsPath} scale={2.5} position={[0, 0, 0]} />
-                <spotLight position={[0, 0.2, 0]} angle={0.5} penumbra={1} intensity={8} color="#ff3300" distance={4} />
+                <pointLight position={[0, 0.2, 0]} intensity={8} color="#ff3300" distance={4} />
             </group>
 
             <group ref={apiRef}>
                 <Model url={apiPath} scale={2.5} position={[0, 0, 0]} />
-                <spotLight position={[0, 0.2, 0]} angle={0.5} penumbra={1} intensity={8} color="#00FFFF" distance={4} />
+                <pointLight position={[0, 0.2, 0]} intensity={8} color="#00FFFF" distance={4} />
             </group>
         </group>
     );
@@ -221,8 +229,10 @@ function SceneWrapper({ mouse, phase, shakeIntensity, setShakeIntensity, scrollP
     const { camera } = useThree();
     
     const lookAtTarget = useRef(new THREE.Vector3(0, -0.5, 0));
+    const warpStart = useRef<number | null>(null);
+    const warpFrom = useRef(new THREE.Vector3());
 
-    useFrame(() => {
+    useFrame((state) => {
         if (!rootRef.current) return;
         
         if (shakeIntensity > 0.01) {
@@ -234,21 +244,50 @@ function SceneWrapper({ mouse, phase, shakeIntensity, setShakeIntensity, scrollP
             rootRef.current.position.y = 0;
         }
 
+        // 🔥 УХОД В КОСМОС: камера отдаляется НАЗАД с разгоном к концу —
+        // зеркально появлению about, где камера, наоборот, влетает издалека и
+        // плавно тормозит. Считаем по времени, а не lerp'ом: lerp к цели всегда
+        // ЗАМЕДЛЯЕТСЯ к концу, то есть даёт ровно обратное ощущение.
+        if (phase === 'warp-out') {
+            const now = state.clock.getElapsedTime();
+            if (warpStart.current === null) {
+                warpStart.current = now;
+                warpFrom.current.copy(camera.position);
+            }
+            const p = THREE.MathUtils.clamp((now - warpStart.current) / WARP_OUT_DURATION, 0, 1);
+            const eased = p * p * p; // ease-in — разгон к концу
+
+            camera.position.x = THREE.MathUtils.lerp(warpFrom.current.x, 0, eased);
+            camera.position.y = THREE.MathUtils.lerp(warpFrom.current.y, 2, eased);
+            camera.position.z = THREE.MathUtils.lerp(warpFrom.current.z, WARP_OUT_Z, eased);
+
+            // Продолжаем смотреть вперёд, чтобы сцена именно УДАЛЯЛАСЬ
+            lookAtTarget.current.x = THREE.MathUtils.lerp(lookAtTarget.current.x, 0, 0.08);
+            lookAtTarget.current.y = THREE.MathUtils.lerp(lookAtTarget.current.y, 0, 0.08);
+            lookAtTarget.current.z = -35;
+            camera.lookAt(lookAtTarget.current);
+            return;
+        }
+
         const flyProgress = THREE.MathUtils.clamp((scrollProgress - 4) / 2, 0, 1);
 
-        // 🔥 КАМЕРА ЦЕЛИТСЯ ИДЕАЛЬНО В КОСТЕР
-        const targetCamX = THREE.MathUtils.lerp(0, isMobile ? 0 : 7.5, flyProgress) + mouse.x * 0.6; 
-        const targetCamY = THREE.MathUtils.lerp(1, isMobile ? -1.5 : -0.2, flyProgress) + mouse.y * 0.4;
-        const targetCamZ = THREE.MathUtils.lerp(9, isMobile ? -22 : -26, flyProgress); // На мобиле отлетаем чуть дальше (-22), чтобы было видно
-        
+        // Параллакс: слабый truck (сдвиг и на камеру, И на точку взгляда, чтобы
+        // сцена не вращалась) и только в состоянии покоя (idle) — во время
+        // варпа/слайда/варп-аута параллакса нет.
+        const paraX = phase === 'idle' ? mouse.x * 0.22 : 0;
+        const paraY = phase === 'idle' ? mouse.y * 0.12 : 0;
+
+        let targetCamX = THREE.MathUtils.lerp(0, isMobile ? 0 : 7.5, flyProgress) + paraX;
+        let targetCamY = THREE.MathUtils.lerp(1, isMobile ? -1.5 : -0.2, flyProgress) + paraY;
+        let targetCamZ = THREE.MathUtils.lerp(9, isMobile ? -22 : -26, flyProgress);
+
+        const targetLookX = THREE.MathUtils.lerp(0, isMobile ? 0 : 9, flyProgress) + paraX;
+        const targetLookY = THREE.MathUtils.lerp(-0.5, isMobile ? -3.5 : -1, flyProgress) + paraY;
+        const targetLookZ = THREE.MathUtils.lerp(0, -35, flyProgress);
+
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetCamX, 0.03);
         camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetCamY, 0.03);
         camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetCamZ, 0.03);
-        
-        // Взгляд камеры
-        const targetLookX = THREE.MathUtils.lerp(0, isMobile ? 0 : 9, flyProgress);
-        const targetLookY = THREE.MathUtils.lerp(-0.5, isMobile ? -3.5 : -1, flyProgress); // Опускаем взгляд на костер
-        const targetLookZ = THREE.MathUtils.lerp(0, -35, flyProgress);
 
         lookAtTarget.current.x = THREE.MathUtils.lerp(lookAtTarget.current.x, targetLookX, 0.03);
         lookAtTarget.current.y = THREE.MathUtils.lerp(lookAtTarget.current.y, targetLookY, 0.03);
@@ -259,7 +298,6 @@ function SceneWrapper({ mouse, phase, shakeIntensity, setShakeIntensity, scrollP
 
     return (
         <group ref={rootRef}>
-            {/* 🔥 ПРОКИНУЛИ isMobile, ТЕПЕРЬ КОСТЕР ЦЕНТРУЕТСЯ */}
             <SpaceFireBackground phase={phase} isMobile={isMobile} />
             <group position={isMobile ? [0, -1.5, -2] : [-2.5, 0, 0]} scale={isMobile ? 0.75 : 1}>
                 <AnimatedScene phase={phase} scrollProgress={scrollProgress} />
@@ -270,63 +308,68 @@ function SceneWrapper({ mouse, phase, shakeIntensity, setShakeIntensity, scrollP
 
 const StackBg = () => {
     const [mouse, setMouse] = useState({ x: 0, y: 0 });
-    const [phase, setPhase] = useState<'bg-warp' | 'impact' | 'sliding' | 'idle'>('bg-warp');
+    const [phase, setPhase] = useState<'bg-warp' | 'impact' | 'sliding' | 'idle' | 'warp-out'>('bg-warp');
     const [shakeIntensity, setShakeIntensity] = useState(0);
     const [scrollProgress, setScrollProgress] = useState(0);
-    
+    const [ready, setReady] = useState(false);      // шейдеры скомпилированы
+    const [impactFired, setImpactFired] = useState(false);
+
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+    // Слушатели — на маунте (безвредны до готовности)
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
-        window.addEventListener('resize', handleResize);
-
         const handleMouseMove = (e: MouseEvent) => {
             setMouse({
                 x: (e.clientX / window.innerWidth) * 2 - 1,
-                y: -(e.clientY / window.innerHeight) * 2 + 1 
+                y: -(e.clientY / window.innerHeight) * 2 + 1
             });
         };
-
         const handleScroll = () => {
             setScrollProgress(Math.max(0, window.scrollY / window.innerHeight));
         };
+        const handleWarpOut = () => setPhase('warp-out');
 
+        window.addEventListener('resize', handleResize);
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('scroll', handleScroll);
+        window.addEventListener('stack-warp-out', handleWarpOut);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('stack-warp-out', handleWarpOut);
+        };
+    }, []);
 
+    // Интро СТАРТУЕТ только когда шейдеры готовы — иначе фриз на компиляции
+    // пришёлся бы прямо на анимацию удара
+    useEffect(() => {
+        if (!ready) return;
         const t1 = setTimeout(() => {
             setPhase('impact');
-            setShakeIntensity(2.0); 
-            const quakeAudio = new Audio(quakePath);
-            quakeAudio.volume = 0.8;
-            quakeAudio.play().catch(err => console.log("Audio block:", err));
+            setShakeIntensity(2.0);
+            setImpactFired(true); // синхронно триггерим ударную волну
+            playSfx(quakePath, 0.8);
         }, 700);
-
-        const t2 = setTimeout(() => {
-            setPhase('sliding');
-        }, 1300);
-
+        const t2 = setTimeout(() => setPhase('sliding'), 1300);
         const t3 = setTimeout(() => {
             setPhase('idle');
             window.dispatchEvent(new Event('show-frontend-text'));
         }, 2800);
-
-        return () => { 
-            window.removeEventListener('resize', handleResize);
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('scroll', handleScroll);
-            clearTimeout(t1);
-            clearTimeout(t2);
-            clearTimeout(t3);
-        };
-    }, []);
+        return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    }, [ready]);
 
     return (
         <div className="fixed inset-0 z-0 w-full h-full bg-[#0a0510] overflow-hidden">
-            <Canvas camera={{ position: [0, 1, 9], fov: 45 }}> 
+            <Canvas dpr={[1, 1.5]} gl={{ powerPreference: 'high-performance', antialias: true }} camera={{ position: [0, 1, 9], fov: 45 }}>
                 <ambientLight intensity={0.3} />
                 <Environment preset="city" />
                 <SceneWrapper mouse={mouse} phase={phase} shakeIntensity={shakeIntensity} setShakeIntensity={setShakeIntensity} scrollProgress={scrollProgress} isMobile={isMobile} />
+                {/* Ударная волна — триггерится ровно в момент удара (см. impactFired) */}
+                <ShockwaveDistortion trigger={impactFired} />
+                <WarmUpCompile onReady={() => setReady(true)} />
+                <Preload all />
             </Canvas>
         </div>
     );

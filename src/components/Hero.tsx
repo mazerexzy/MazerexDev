@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useT } from '../i18n/useT';
 
 const Hero = ({ isImpacted }: { isImpacted: boolean }) => {
+    const t = useT();
     // 0 это типо скрыто, 1 = удар по центру, 2 = сдвиг вверх и енеми текст
     const [phase, setPhase] = useState(0);
     // Отслеживаем, начал ли тип скроллить вниз
@@ -45,23 +47,23 @@ const Hero = ({ isImpacted }: { isImpacted: boolean }) => {
                     <p className={`text-4xl md:text-6xl font-gdblack text-white tracking-tight transition-all duration-500 ease-out
                     [text-shadow:-0.5px_0.5px_0px_#8A2BE2,_-1px_1px_0px_#FF1493,_-1.5px_1.5px_0px_#FF0000]
                         ${phase === 2 ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-16'}`}>
-                        FullStack Developer.
+                        {t('heroRole')}
                     </p>
 
                     <p className={`text-4xl md:text-6xl font-gdblack text-white tracking-tight transition-all duration-500 ease-out delay-100
                     [text-shadow:-0.5px_0.5px_0px_#8A2BE2,_-1px_1px_0px_#FF1493,_-1.5px_1.5px_0px_#FF0000]
                         ${phase === 2 ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-16'}`}>
-                        Yo, i'm Mark.
+                        {t('heroName')}
                     </p>
 
                     <p className={`text-sm md:text-base font-gdmed text-white mt-6 transition-all duration-500 ease-out delay-200
                         ${phase === 2 ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-16'}`}>
-                        My code works, I don't know why
+                        {t('heroSub')}
                     </p>
 
                     <p className={`text-sm md:text-base font-gdblack text-white mt-6 transition-all duration-500 ease-out delay-200
                         ${phase === 2 ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-16'}`}>
-                        TAKE A SPIN
+                        {t('heroCta')}
                     </p>
                 </div>
 

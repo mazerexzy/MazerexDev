@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { useT, splitLines } from '../i18n/useT';
 
 const DevOpsStack = () => {
+    const t = useT();
     const [viewState, setViewState] = useState<'hidden-bottom' | 'visible' | 'hidden-top'>('hidden-bottom');
     const sectionRef = useRef<HTMLElement>(null);
 
@@ -44,12 +46,14 @@ const DevOpsStack = () => {
 
                     {/* ИЗМЕНЕНО: текст стал md:text-6xl */}
                     <h2 className="text-5xl md:text-6xl font-gdblack text-white leading-tight [text-shadow:-0.5px_0.5px_0px_#8A2BE2,_-1px_1px_0px_#FF1493,_-1.5px_1.5px_0px_#FF0000]">
-                        DevOps & <br /> Server-side.
+                        {splitLines(t('devopsTitle')).map((line, i) => (
+                            <span key={i}>{line}{i === 0 && <br />}</span>
+                        ))}
                     </h2>
 
                     {/* Место под будущий текст-описание, чтобы тебе не пришлось потом вручную верстать */}
                     <p className="mt-6 text-sm md:text-base text-white font-gdmed leading-relaxed">
-                        Building and maintaining scalable infrastructure, CI/CD pipelines, and robust backend systems to keep everything running smoothly.
+                        {t('devopsText')}
                     </p>
 
                 </div>

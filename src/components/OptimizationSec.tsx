@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { useT, splitLines } from '../i18n/useT';
 
 const OptimizationSec = () => {
+    const t = useT();
     const [viewState, setViewState] = useState<'hidden-bottom' | 'visible' | 'hidden-top'>('hidden-bottom');
     const sectionRef = useRef<HTMLElement>(null);
 
@@ -41,11 +43,13 @@ const OptimizationSec = () => {
                 <div className={`transition-all duration-1000 ease-out ${getAnimClasses('delay-300')}`}>
 
                     <h2 className="text-5xl md:text-7xl font-gdblack text-white leading-tight [text-shadow:-0.5px_0.5px_0px_#8A2BE2,_-1px_1px_0px_#FF1493,_-1.5px_1.5px_0px_#FF0000]">
-                        Optimization & <br />  Security.
+                        {splitLines(t('optTitle')).map((line, i) => (
+                            <span key={i}>{line}{i === 0 && <br />}</span>
+                        ))}
                     </h2>
 
                     <p className="mt-6 text-base md:text-lg text-white font-gdmed leading-relaxed max-w-xl">
-                        Caching, lazy-loading, image compression. Protection against basic vulnerabilities (XSS, CSRF, SQLi).
+                        {t('optText')}
                     </p>
 
                 </div>

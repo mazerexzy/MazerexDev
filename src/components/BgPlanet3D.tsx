@@ -1,9 +1,11 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Preload } from '@react-three/drei';
 import { useRef, useMemo, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import Sky from '../assets/about_sky.png';
 import useSound from 'use-sound';
 import quakeSound from '../assets/sounds/quake.mp3';
+import ShockwaveDistortion from './effects/ShockwaveDistortion';
 
 // --- КОМПОНЕНТ 1: РЕТРО ЛЭПТОП ---
 function RetroLaptop({ scrollProgress, isMobile }: { scrollProgress: number, isMobile: boolean }) {
@@ -698,9 +700,12 @@ function SaturnScene({ onImpact, scrollProgress, globalMouse, isMobile, isReturn
         }
 
         if (t > FLY_END) {
-            mouseRef.current.x = THREE.MathUtils.lerp(mouseRef.current.x, globalMouse.current.x * 1, 0.02);
-            mouseRef.current.y = THREE.MathUtils.lerp(mouseRef.current.y, globalMouse.current.y * 1, 0.02);
+            // Слабый truck-параллакс с задержкой: сдвиг и на позицию камеры,
+            // И на точку взгляда (finalLook), чтобы сцена не вращалась/не орбитила.
+            mouseRef.current.x = THREE.MathUtils.lerp(mouseRef.current.x, globalMouse.current.x * 0.55, 0.02);
+            mouseRef.current.y = THREE.MathUtils.lerp(mouseRef.current.y, globalMouse.current.y * 0.55, 0.02);
             finalCamX += mouseRef.current.x; finalCamY += mouseRef.current.y;
+            finalLookX += mouseRef.current.x; finalLookY += mouseRef.current.y;
         }
 
         if (isMobile) {
@@ -756,6 +761,10 @@ export default function BgPlanet3D({ onImpact, isMobile, isReturnTrip = false }:
     const [scrollProgress, setScrollProgress] = useState(0);
     const globalMouse = useRef({ x: 0, y: 0 });
     const [isFading, setIsFading] = useState(false);
+    // Волну запускаем ровно в момент удара, а не по фиксированному времени:
+    // время сцены сдвигается (t = clockTime + 4.5 при isReturnTrip), поэтому
+    // захардкоженная секунда давала заметную задержку.
+    const [impactFired, setImpactFired] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -787,10 +796,10 @@ export default function BgPlanet3D({ onImpact, isMobile, isReturnTrip = false }:
         <div className="fixed inset-0 z-0 w-full bg-[#483D8B] h-full pointer-events-none" style={{ backgroundImage: `url(${Sky})` }}>
             <div className={`absolute inset-0 z-50 bg-[#0a0510] pointer-events-none transition-opacity duration-700 ease-in ${isFading ? 'opacity-100' : 'opacity-0'}`} />
 
-            <Canvas style={{ pointerEvents: 'auto' }}>
+            <Canvas dpr={[1, 1.5]} gl={{ powerPreference: 'high-performance', antialias: true }} style={{ pointerEvents: 'auto' }}>
                 <WaveGrid />
                 {/* 🔥 ПРОКИДЫВАЕМ isReturnTrip */}
-                <SaturnScene onImpact={onImpact} scrollProgress={scrollProgress} globalMouse={globalMouse} isMobile={isMobile} isReturnTrip={isReturnTrip} />
+                <SaturnScene onImpact={() => { setImpactFired(true); onImpact?.(); }} scrollProgress={scrollProgress} globalMouse={globalMouse} isMobile={isMobile} isReturnTrip={isReturnTrip} />
                 <RetroLaptop scrollProgress={scrollProgress} isMobile={isMobile} />
                 <RetroPhone scrollProgress={scrollProgress} isMobile={isMobile} />
                 <RetroBot scrollProgress={scrollProgress} isMobile={isMobile} />
@@ -798,6 +807,9 @@ export default function BgPlanet3D({ onImpact, isMobile, isReturnTrip = false }:
 
                 <DimensionWarp scrollProgress={scrollProgress} />
                 <CyberGodzilla scrollProgress={scrollProgress} isMobile={isMobile} />
+                {/* Ударная волна — строго в момент удара (см. impactFired) */}
+                <ShockwaveDistortion trigger={impactFired} />
+                <Preload all />
             </Canvas>
         </div>
     );
