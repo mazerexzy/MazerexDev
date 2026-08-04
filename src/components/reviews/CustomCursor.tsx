@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * Курсор в стиле референса: маленькая точка, которая следует за мышью точно,
@@ -6,12 +6,21 @@ import { useEffect, useRef } from 'react';
  *
  * Позиции пишем прямо в style.transform из rAF-цикла — без state и re-render'ов.
  * Нативный курсор прячем только пока смонтирован компонент.
+ *
+ * На тач-устройствах компонент не рендерится вообще: курсора там нет, а два
+ * fixed-слоя поверх страницы + cursor:none только мешают тапам.
  */
 export default function CustomCursor() {
     const dot = useRef<HTMLDivElement>(null);
     const ring = useRef<HTMLDivElement>(null);
+    const [isTouch, setIsTouch] = useState(true); // до проверки считаем тачем
 
     useEffect(() => {
+        setIsTouch(window.matchMedia('(pointer: coarse)').matches);
+    }, []);
+
+    useEffect(() => {
+        if (isTouch) return;
         const target = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
         const ringPos = { x: target.x, y: target.y };
         let raf = 0;
@@ -56,7 +65,9 @@ export default function CustomCursor() {
             document.removeEventListener('mouseleave', onLeave);
             document.body.style.cursor = prevCursor;
         };
-    }, []);
+    }, [isTouch]);
+
+    if (isTouch) return null;
 
     return (
         <>

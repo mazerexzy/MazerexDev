@@ -26,30 +26,34 @@ const ReviewsSection = ({ isClosing = false, revealed = false }: ReviewsSectionP
     const animateState = isClosing ? 'exiting' : revealed ? 'visible' : 'hidden';
 
     return (
-        <section className="relative w-full h-[100dvh] overflow-hidden flex items-center px-6 md:px-20">
+        // pt-28 — чтобы высокий блок не наезжал на логотип в шапке: при
+        // items-center контент центрируется и без отступа вылезает вверх
+        // pointer-events-none — в блоке нет интерактивных элементов, а по высоте
+        // он перекрывает пол-экрана и иначе съедает тапы по шапке/тумблерам
+        <section className="relative w-full h-[100dvh] overflow-hidden flex items-center px-6 md:px-20 pt-28 pb-10 md:py-0 pointer-events-none">
             <motion.div
                 variants={fadeUp}
                 initial="hidden"
                 animate={animateState}
                 className="relative z-10 flex flex-col max-w-xl"
             >
-                <h1 className="font-gdblack text-5xl md:text-6xl lg:text-7xl text-white leading-none [text-shadow:-0.2px_0.2px_2px_#8A2BE2,_-0.3px_0.3px_0px_#FF1493,_-0.5px_0.5px_0px_#FF0000] tracking-tight">
+                <h1 className="font-gdblack text-[2.1rem] sm:text-5xl md:text-6xl lg:text-7xl text-white leading-none [text-shadow:-0.2px_0.2px_2px_#8A2BE2,_-0.3px_0.3px_0px_#FF1493,_-0.5px_0.5px_0px_#FF0000] tracking-tight">
                     {t('reviewsTitle')}
                 </h1>
 
-                <p className="mt-4 text-[13px] md:text-[15px] text-white font-gdmed [text-shadow:1px_1px_0px_#808080] tracking-wide">
+                <p className="mt-3 md:mt-4 text-[12px] md:text-[15px] text-white font-gdmed [text-shadow:1px_1px_0px_#808080] tracking-wide">
                     {t('reviewsSub')}
                 </p>
 
-                <h2 className="mt-10 md:mt-14 font-gdblack text-3xl md:text-5xl text-white leading-none [text-shadow:-0.2px_0.2px_2px_#8A2BE2,_-0.3px_0.3px_0px_#FF1493] tracking-tight">
+                <h2 className="mt-6 md:mt-14 font-gdblack text-2xl sm:text-3xl md:text-5xl text-white leading-none [text-shadow:-0.2px_0.2px_2px_#8A2BE2,_-0.3px_0.3px_0px_#FF1493] tracking-tight">
                     {t('reviewsWhat')}
                 </h2>
 
-                <div className="mt-6 flex flex-col gap-5 max-w-[560px]">
+                <div className="mt-4 md:mt-6 flex flex-col gap-3.5 md:gap-5 max-w-[560px]">
                     {REVIEWS.map((r) => (
                         <div key={r.name}>
-                            <p className="font-gdblack text-white text-[15px] md:text-base">{r.name}</p>
-                            <p className="mt-1 text-[12px] md:text-[13.5px] text-white/85 font-gdmed [text-shadow:1px_1px_0px_#808080] leading-relaxed">
+                            <p className="font-gdblack text-white text-[13px] md:text-base">{r.name}</p>
+                            <p className="mt-1 text-[11px] md:text-[13.5px] text-white/85 font-gdmed [text-shadow:1px_1px_0px_#808080] leading-relaxed">
                                 {r.text}
                             </p>
                         </div>
