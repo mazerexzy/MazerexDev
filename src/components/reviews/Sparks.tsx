@@ -3,7 +3,8 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useScene, IMPACT, FIRE_HOT, PURPLE } from './sceneState';
 
-const COUNT = 260;
+const COUNT_DESKTOP = 260;
+const COUNT_MOBILE = 100;
 
 interface Spark {
     pos: THREE.Vector3;
@@ -18,12 +19,13 @@ interface Spark {
  * при ударе — плотный сноп во все стороны с гравитацией и отскоком от земли.
  * Instanced, ориентированы вдоль вектора скорости (эффект стрика/скорости).
  */
-export default function Sparks() {
+export default function Sparks({ isMobile = false }: { isMobile?: boolean }) {
+    const COUNT = isMobile ? COUNT_MOBILE : COUNT_DESKTOP;
     const s = useScene();
     const mesh = useRef<THREE.InstancedMesh>(null);
     const pool = useMemo<Spark[]>(() => Array.from({ length: COUNT }, () => ({
         pos: new THREE.Vector3(), vel: new THREE.Vector3(), age: 0, life: 1, active: false,
-    })), []);
+    })), [COUNT]);
     const cursor = useRef(0);
     const burst = useRef(false);
     const dummy = useMemo(() => new THREE.Object3D(), []);

@@ -4,7 +4,8 @@ import * as THREE from 'three';
 import { useScene, IMPACT } from './sceneState';
 import { radialTexture } from './textures';
 
-const COUNT = 90;
+const COUNT_DESKTOP = 90;
+const COUNT_MOBILE = 45;
 
 interface Puff {
     pos: THREE.Vector3;
@@ -21,7 +22,8 @@ interface Puff {
  * мощный клуб вверх/в стороны, потом идёт ещё несколько секунд и тает.
  * Частицы создаются один раз, дальше только переиспользуются.
  */
-export default function SmokeParticles() {
+export default function SmokeParticles({ isMobile = false }: { isMobile?: boolean }) {
+    const COUNT = isMobile ? COUNT_MOBILE : COUNT_DESKTOP;
     const s = useScene();
     const { camera } = useThree();
     const mesh = useRef<THREE.InstancedMesh>(null);
@@ -29,7 +31,7 @@ export default function SmokeParticles() {
 
     const pool = useMemo<Puff[]>(() => Array.from({ length: COUNT }, () => ({
         pos: new THREE.Vector3(), vel: new THREE.Vector3(), age: 0, life: 1, size: 1, rot: 0, active: false,
-    })), []);
+    })), [COUNT]);
     const cursor = useRef(0);
     const burst = useRef(false);
     const dummy = useMemo(() => new THREE.Object3D(), []);

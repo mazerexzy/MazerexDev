@@ -6,7 +6,8 @@ import { IMPACT } from './sceneState';
 
 import fragmentPath from '../../assets/models/meteor_fragment.glb?url';
 
-const COUNT = 28;
+const COUNT_DESKTOP = 28;
+const COUNT_MOBILE = 12;
 
 /**
  * Разлёт осколков камня на физике Rapier. Монтируется только ПОСЛЕ удара —
@@ -14,7 +15,8 @@ const COUNT = 28;
  * Rapier сам катает/подбрасывает их. InstancedRigidBodies = один InstancedMesh
  * + N связанных физических тел (перф-путь для множества камней).
  */
-export default function DebrisSystem() {
+export default function DebrisSystem({ isMobile = false }: { isMobile?: boolean }) {
+    const COUNT = isMobile ? COUNT_MOBILE : COUNT_DESKTOP;
     const { scene } = useGLTF(fragmentPath);
 
     // Достаём геометрию/материал осколка из модели
@@ -56,7 +58,7 @@ export default function DebrisSystem() {
                 ],
             } as InstancedRigidBodyProps;
         });
-    }, []);
+    }, [COUNT]);
 
     if (!geometry) return null;
 

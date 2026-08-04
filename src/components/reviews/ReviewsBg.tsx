@@ -45,7 +45,9 @@ const ReviewsBg = ({ onImpact }: { onImpact?: () => void }) => {
         <div className="fixed inset-0 z-0 w-full h-full bg-black overflow-hidden pointer-events-none">
             <Canvas
                 shadows
-                dpr={[1, 1.5]}
+                // на телефоне рендерим 1:1 — сцена тяжёлая, лишние пиксели
+                // забивают GPU и главный поток, из-за чего тормозят тапы
+                dpr={isMobile ? 1 : [1, 1.5]}
                 gl={{ powerPreference: 'high-performance', antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
                 camera={{ position: [-3, 8.5, 26], fov: 42 }}
             >
@@ -69,8 +71,8 @@ const ReviewsBg = ({ onImpact }: { onImpact?: () => void }) => {
                     {/* Ударная волна — как на других страницах, но эффектом
                         композера (первой в цепочке, чтобы искажение шло до блума). */}
                     <ShockwavePass state={waveState} />
-                    {/* Линзовое искажение, следующее за курсором */}
-                    <CursorDistortionPass state={cursorState} />
+                    {/* Линзовое искажение за курсором — только там, где курсор есть */}
+                    {!isMobile && <CursorDistortionPass state={cursorState} />}
                     {/* Порог высокий (0.95) => блумят только реально яркие
                         объекты, а не вся эмиссия сцены — иначе после удара
                         яркие ядро/трещины/свет размазывались в белую пелену,

@@ -95,14 +95,14 @@ export default function SceneController({ isMobile, onImpact, cursor }: { isMobi
             {/* Дальний план: огромная неоновая эльфийская башня */}
             <ElvenTower position={[34, 0, -62]} scale={1.6} rotation={[0, -0.5, 0]} />
             {/* Стена раскалённых искр от башни, кольцом вокруг сцены */}
-            <EmberField origin={[34, 0, -62]} />
+            <EmberField origin={[34, 0, -62]} isMobile={isMobile} />
             <Meteor />
             <FireTrail />
-            <SmokeParticles />
-            <Sparks />
+            <SmokeParticles isMobile={isMobile} />
+            <Sparks isMobile={isMobile} />
             <ImpactEffect />
             <CrackSystem />
-            {impacted && <DebrisSystem />}
+            {impacted && <DebrisSystem isMobile={isMobile} />}
 
             <CameraShake isMobile={isMobile} cursor={cursor} />
             <SoundManager impacted={impacted} />

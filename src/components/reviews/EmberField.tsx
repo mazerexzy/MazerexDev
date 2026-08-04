@@ -4,7 +4,8 @@ import * as THREE from 'three';
 import { useScene, FIRE_HOT, PURPLE } from './sceneState';
 import { radialTexture } from './textures';
 
-const COUNT = 700;
+const COUNT_DESKTOP = 700;
+const COUNT_MOBILE = 200; // на телефоне 700 билбордов забивают главный поток
 
 /**
  * Поле раскалённых угольков-искр: стеной-«забором» окружает сцену по кругу,
@@ -14,7 +15,8 @@ const COUNT = 700;
  * Один InstancedMesh на все частицы, буферы считаются один раз — в кадре только
  * обновление матриц, без аллокаций.
  */
-export default function EmberField({ origin = [34, 0, -62] as [number, number, number] }) {
+export default function EmberField({ origin = [34, 0, -62] as [number, number, number], isMobile = false }) {
+    const COUNT = isMobile ? COUNT_MOBILE : COUNT_DESKTOP;
     const s = useScene();
     const { camera } = useThree();
     const mesh = useRef<THREE.InstancedMesh>(null);
@@ -40,7 +42,7 @@ export default function EmberField({ origin = [34, 0, -62] as [number, number, n
             size: 0.16 + Math.random() * 0.32,
             twinkle: 1.5 + Math.random() * 3,
         };
-    }), [origin]);
+    }), [origin, COUNT]);
 
     const dummy = useMemo(() => new THREE.Object3D(), []);
     const col = useMemo(() => new THREE.Color(), []);
