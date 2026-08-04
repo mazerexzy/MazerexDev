@@ -26,11 +26,13 @@ const ReviewsSection = ({ isClosing = false, revealed = false }: ReviewsSectionP
     const animateState = isClosing ? 'exiting' : revealed ? 'visible' : 'hidden';
 
     return (
-        // pt-28 — чтобы высокий блок не наезжал на логотип в шапке: при
-        // items-center контент центрируется и без отступа вылезает вверх
+        // items-start + отступ сверху на ВСЕХ брейкпоинтах: блок высокий, и при
+        // items-center он центрировался, вылезая вверх под логотип. Отдельно
+        // важно не гасить отступ через md:py-0 (как на contact) — там текст
+        // короткий, а здесь это и приводило к наезду на десктопе.
         // pointer-events-none — в блоке нет интерактивных элементов, а по высоте
         // он перекрывает пол-экрана и иначе съедает тапы по шапке/тумблерам
-        <section className="relative w-full h-[100dvh] overflow-hidden flex items-center px-6 md:px-20 pt-28 pb-10 md:py-0 pointer-events-none">
+        <section className="relative w-full h-[100dvh] overflow-hidden flex items-start px-6 md:px-20 pt-28 md:pt-32 pb-10 pointer-events-none">
             <motion.div
                 variants={fadeUp}
                 initial="hidden"
