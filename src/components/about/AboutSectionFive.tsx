@@ -5,7 +5,7 @@ import { useT, splitLines } from '../../i18n/useT';
 const AboutSectionFive = () => {
     const t = useT();
     return (
-        <section className="relative w-full h-screen flex items-center justify-end px-8 md:px-20 lg:px-32 overflow-hidden pointer-events-none">
+        <section className="relative w-full h-[100dvh] flex items-center justify-end px-8 md:px-20 lg:px-32 overflow-hidden pointer-events-none">
             <div className="w-full md:max-w-[450px] lg:max-w-[500px] flex flex-col justify-center gap-6 z-10 pointer-events-auto text-left">
                 
                 <motion.h2 

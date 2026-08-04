@@ -36,7 +36,7 @@ const WebStack = () => {
     };
 
     return (
-        <section ref={sectionRef} className="relative w-full h-screen bg-transparent flex items-center justify-center snap-start pointer-events-none">
+        <section ref={sectionRef} className="relative w-full h-[100dvh] bg-transparent flex items-center justify-center snap-start pointer-events-none">
 
             {/* ПРАВАЯ ЧАСТЬ (Web Development) - СПРАВА */}
             {/* ИЗМЕНЕНИЕ ЗДЕСЬ: поменяли md:max-w-xl на md:max-w-2xl */}

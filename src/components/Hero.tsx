@@ -27,7 +27,7 @@ const Hero = ({ isImpacted }: { isImpacted: boolean }) => {
     }, []);
 
     return (
-        <section className="relative w-full h-screen bg-transparent flex items-center justify-center snap-start">
+        <section className="relative w-full h-[100dvh] bg-transparent flex items-center justify-center snap-start">
 
             <div
                 className={`relative z-10 flex flex-col items-center justify-center pointer-events-none select-none transition-all duration-1000 ease-out w-full scale-90 md:scale-100

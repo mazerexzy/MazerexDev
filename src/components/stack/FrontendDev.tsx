@@ -35,7 +35,7 @@ const FrontendDev = () => {
     }, []);
 
     return (
-        <section ref={sectionRef} className="relative w-full h-screen overflow-hidden">
+        <section ref={sectionRef} className="relative w-full h-[100dvh] overflow-hidden">
             {/* 🔥 АДАПТИВ: md:left-1/2 для компа, inset-0 и px-4 для центровки на мобилках */}
             <div className={`absolute inset-0 md:left-1/2 z-10 flex flex-col items-center justify-center pointer-events-none px-4 text-center transition-all ease-out 
                 ${textState === 'visible' 

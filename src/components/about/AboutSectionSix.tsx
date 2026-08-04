@@ -33,7 +33,7 @@ const AboutSectionSix = ({ onNavigateContact }: AboutSectionSixProps) => {
     };
 
     return (
-        <section className="relative w-full h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden pointer-events-none">
+        <section className="relative w-full h-[100dvh] flex flex-col items-center justify-center text-center px-6 overflow-hidden pointer-events-none">
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}

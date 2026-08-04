@@ -24,7 +24,7 @@ const PromoStackOne = () => {
     }, []);
 
     return (
-        // 🔥 ФИКС 2: h-[100dvh] вместо h-screen (учитывает адресную строку телефона)
+        // 🔥 ФИКС 2: h-[100dvh] вместо h-[100dvh] (учитывает адресную строку телефона)
         <section ref={sectionRef} className="relative w-full h-[100dvh] overflow-hidden flex items-center justify-center">
             
             {/* 🔥 ФИКС 3: Снизили дальность отлета до 30vh, добавили px-4 для мобильных отступов */}
