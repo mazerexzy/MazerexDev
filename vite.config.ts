@@ -8,8 +8,8 @@ export default defineConfig({
     tailwindcss(),
   ],
   assetsInclude: ['**/*.glb', '**/*.gltf'],
-  // GitHub Pages отдаёт сайт из подпапки /MazerexDev/, а Cloudflare Pages —
-  // из корня. CF_PAGES проставляется самим Cloudflare во время сборки, поэтому
-  // один и тот же репозиторий корректно собирается под оба хостинга.
-  base: process.env.CF_PAGES ? '/' : '/MazerexDev/',
+  // GitHub Pages отдаёт сайт из подпапки /MazerexDev/, а Vercel и Cloudflare
+  // Pages — из корня. Переменные VERCEL / CF_PAGES эти хостинги проставляют
+  // сами во время сборки, поэтому один репозиторий собирается под все три.
+  base: process.env.VERCEL || process.env.CF_PAGES ? '/' : '/MazerexDev/',
 })
