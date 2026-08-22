@@ -102,6 +102,13 @@ export const dict = {
         // ── UI ────────────────────────────────────────────────────────────
         loading: 'LOADING',
         enter: 'enter',
+
+        // ── ВЫБОР РЕЖИМА ──────────────────────────────────────────────────
+        modeTitle: 'CHOOSE YOUR EXPERIENCE',
+        modeSub: 'Interactive 3D scenes with physics and effects — or the same site on a light animated background.',
+        modeFull: 'With 3D models',
+        modeLite: 'Without models',
+        modeHint: 'You can reload the page to switch modes.',
     },
 
     ru: {
@@ -200,6 +207,13 @@ export const dict = {
         // ── UI ────────────────────────────────────────────────────────────
         loading: 'ЗАГРУЗКА',
         enter: 'войти',
+
+        // ── ВЫБОР РЕЖИМА ──────────────────────────────────────────────────
+        modeTitle: 'ВЫБЕРИТЕ РЕЖИМ',
+        modeSub: 'Интерактивные 3D-сцены с физикой и эффектами — или тот же сайт на лёгком анимированном фоне.',
+        modeFull: 'С 3D-моделями',
+        modeLite: 'Без моделей',
+        modeHint: 'Чтобы сменить режим, перезагрузите страницу.',
     },
 } as const;
 

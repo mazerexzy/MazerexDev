@@ -13,8 +13,9 @@ import useSound from 'use-sound';
 import scrollSound from "./assets/sounds/scroll.mp3";
 import SoundToggle from "./components/SoundToggle";
 import LanguageToggle from "./components/LanguageToggle";
-import bgmSound1 from "./assets/sounds/Aphex Twin - Heliosphan (SPOTISAVER).mp3";
-import bgmSound2 from "./assets/sounds/Aphex Twin - Heliosphan (SPOTISAVER).mp3"; 
+import bgmMusic from "./assets/sounds/music.mp3";
+import cityHdr from "./assets/hdri/potsdamer_platz_1k.hdr?url";
+import nightHdr from "./assets/hdri/dikhololo_night_1k.hdr?url";
 import Header from "./components/Header"; 
 
 import FrontendDev from "./components/stack/FrontendDev";
@@ -40,9 +41,12 @@ import ContactSection from "./components/contact/ContactSection";
 import ReviewsBg from "./components/reviews/ReviewsBg";
 import ReviewsSection from "./components/reviews/ReviewsSection";
 import SceneErrorBoundary from "./components/reviews/SceneErrorBoundary";
+import ModeSelect, { type SiteMode } from "./components/ModeSelect";
+import LiteBackground from "./components/LiteBackground";
+import { ModeProvider } from "./context/ModeContext";
 import CustomCursor from "./components/reviews/CustomCursor";
 
-import { useProgress, useGLTF } from '@react-three/drei';
+import { useProgress, useGLTF, useEnvironment } from '@react-three/drei';
 
 import laptopPath from './assets/models/laptop.glb?url';
 import platformPath from './assets/models/platform.glb?url';
@@ -65,6 +69,13 @@ const ASSET_PATHS = [
   apiPath, spaceFirePath, islandPath, skyPath, batPath, galaxyPhonePath, ghostPath
 ];
 
+// Окружения сцен. Лежат локально, а не тянутся из preset'ов drei с
+// raw.githack.com: сторонний CDN добавлял в переход лишний round-trip.
+const HDRI_PATHS = [cityHdr, nightHdr];
+
+/** Громкость фоновой музыки — она подложка под клики/ховеры, а не первый план. */
+const BGM_VOLUME = 0.15;
+
 function App() {
   const [startHero, setStartHero] = useState(false);
   const [showPreloader, setShowPreloader] = useState(true);
@@ -79,6 +90,9 @@ function App() {
   const [isExiting, setIsExiting] = useState(false);
   // На reviews текст появляется только после падения метеорита
   const [reviewsImpacted, setReviewsImpacted] = useState(false);
+  // Режим сайта выбирается ДО прелоадера. null — экран выбора ещё открыт.
+  const [mode, setMode] = useState<SiteMode | null>(null);
+  const isLite = mode === 'lite';
 
   const { progress, active } = useProgress();
   const [smoothProgress, setSmoothProgress] = useState(0);
@@ -89,15 +103,18 @@ function App() {
   const lenisRef = useRef<Lenis | null>(null);
   const isScrollingAnimatingRef = useRef(false);
   
-  const currentTrackRef = useRef<'none' | 'home' | 'stack' | 'about'>('none');
+  // Фоновая музыка запускается один раз за сессию — ref держит этот факт,
+  // чтобы переходы между страницами не перезапускали трек с начала.
+  const bgmStartedRef = useRef(false);
 
   const [playScroll] = useSound(scrollSound, {
     volume: 1,
     sprite: { trimmedClick: [250, 3000] },
   });
 
-  const [, { stop: stopBgm1 }] = useSound(bgmSound1, { volume: 0.02, loop: true });
-  const [playBgm2, { stop: stopBgm2 }] = useSound(bgmSound2, { volume: 0.02, loop: true });
+  // Одна дорожка на весь сайт, зациклена. Через use-sound (Howler) — значит
+  // кнопка звука глушит её вместе с остальным.
+  const [playBgm, { stop: stopBgm }] = useSound(bgmMusic, { volume: BGM_VOLUME, loop: true });
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -111,9 +128,16 @@ function App() {
 
   useEffect(() => { playScrollRef.current = playScroll; }, [playScroll]);
 
+  // В lite-режиме .glb не нужны вообще — не тратим трафик и память.
+  // Ждём выбора режима, иначе предзагрузка стартует до него.
   useEffect(() => {
+    if (mode !== 'full') return;
     ASSET_PATHS.forEach((path) => useGLTF.preload(path));
-  }, []);
+    // HDRI-окружения тянем здесь же. Иначе 1.5-1.7 МБ качались и разбирались
+    // в момент перехода на stack/about — то есть ровно тогда, когда экран
+    // должен анимироваться. Тут пользователь и так ждёт прелоудер.
+    HDRI_PATHS.forEach((files) => useEnvironment.preload({ files }));
+  }, [mode]);
 
   // Прогресс реальный (backed drei-менеджером), но с защитой от преждевременных
   // 100%: показываем максимум 99, пока менеджер ещё активно грузит, и отдаём
@@ -136,6 +160,26 @@ function App() {
     return () => clearTimeout(t);
   }, []);
 
+  // ── LITE: подменяем сигналы, которые обычно шлют 3D-сцены ───────────────
+  // Без них тексты просто не появятся: Hero ждёт удара планеты, первая секция
+  // stack — события от StackBg, reviews — падения метеорита.
+  useEffect(() => {
+    if (!isLite || showPreloader || !startHero) return;
+
+    if (currentPage === 'home' && !isImpacted) {
+      const t = setTimeout(() => setIsImpacted(true), 250);
+      return () => clearTimeout(t);
+    }
+    if (currentPage === 'stack') {
+      const t = setTimeout(() => window.dispatchEvent(new Event('show-frontend-text')), 450);
+      return () => clearTimeout(t);
+    }
+    if (currentPage === 'reviews' && !reviewsImpacted) {
+      const t = setTimeout(() => setReviewsImpacted(true), 350);
+      return () => clearTimeout(t);
+    }
+  }, [isLite, showPreloader, startHero, currentPage, isImpacted, reviewsImpacted]);
+
   useEffect(() => {
       const handleNavAbout = () => {
           setCurrentPage('about');
@@ -146,18 +190,17 @@ function App() {
       return () => window.removeEventListener('navigate-about', handleNavAbout);
   }, []);
 
+  // Музыка одна на весь сайт: стартует при входе и играет по кругу до закрытия
+  // вкладки. Намеренно не завязана на currentPage — иначе трек рвался бы на
+  // каждом переходе. Старт после клика Enter (startHero) ещё и обходит запрет
+  // автоплея: браузеру нужен жест пользователя.
   useEffect(() => {
-    if (!showPreloader && startHero) {
-      if (currentPage === 'about' && currentTrackRef.current !== 'about') {
-        stopBgm1(); 
-        playBgm2();
-        currentTrackRef.current = 'about';
-      } else if (currentPage !== 'about' && currentTrackRef.current === 'about') {
-        stopBgm2();
-        currentTrackRef.current = 'none';
-      }
-    }
-  }, [showPreloader, startHero, currentPage, stopBgm1, playBgm2, stopBgm2]);
+    if (showPreloader || !startHero || bgmStartedRef.current) return;
+    bgmStartedRef.current = true;
+    playBgm();
+  }, [showPreloader, startHero, playBgm]);
+
+  useEffect(() => () => stopBgm(), [stopBgm]);
 
   useEffect(() => {
     const handleScrollState = () => {
@@ -190,10 +233,14 @@ function App() {
 
     isScrollingAnimatingRef.current = true;
 
-    const duration = currentPage === 'about' ? 2.5 : 1.5;
-    const easingFunc = currentPage === 'about' 
-        ? (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2 
-        : (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)); 
+    // Вот здесь и была «резкость»: home/stack прокручиваются за 1.5с с
+    // easeOutExpo — он стартует рывком. У about 2.5с и easeInOutCubic: мягкий
+    // разгон и торможение. В lite-режиме везде берём подачу about.
+    const aboutLike = currentPage === 'about' || isLite;
+    const duration = aboutLike ? 2.5 : 1.5;
+    const easingFunc = aboutLike
+        ? (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+        : (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t));
 
     lenisRef.current.scrollTo(targetIndex * window.innerHeight, {
       duration: duration,
@@ -324,8 +371,22 @@ function App() {
   // Размытие контента при уходе через хэдэр (фон/3D не трогаем — только тексты)
   const exitFx = `transition-all duration-500 ease-in ${isExiting ? 'opacity-0 blur-lg' : 'opacity-100 blur-0'}`;
 
+  // Пока режим не выбран — только экран выбора. Прелоадер и сайт не монтируем,
+  // иначе 3D-сцены начнут инициализироваться до решения пользователя.
+  if (!mode) {
+    return (
+      <div className="relative w-full bg-black min-h-screen select-none">
+        <ModeSelect onPick={setMode} />
+      </div>
+    );
+  }
+
   return (
+    <ModeProvider mode={mode}>
     <div className="relative w-full bg-black min-h-screen select-none">
+      {/* В lite-режиме единый CSS-фон под всеми страницами */}
+      {isLite && startHero && <LiteBackground page={currentPage} />}
+
       {showPreloader && <Preloader onStartTransition={() => setStartHero(true)} onComplete={() => setShowPreloader(false)} progress={smoothProgress} />}
       
       {startHero && <SoundToggle />}
@@ -344,7 +405,7 @@ function App() {
 
       {currentPage === 'home' && startHero && (
         <>
-          <BgPlanet3D onImpact={() => setIsImpacted(true)} isMobile={isMobile} isReturnTrip={isReturnTrip} />
+          {!isLite && <BgPlanet3D onImpact={() => setIsImpacted(true)} isMobile={isMobile} isReturnTrip={isReturnTrip} />}
           <div className={`relative z-10 ${exitFx}`}>
             <Hero isImpacted={isImpacted} />
             <WebStack /> <DevOpsStack /> <TgBotsStack /> <OptimizationSec /> <FullChaos onNavigate={handleNavigateToStack} />
@@ -359,7 +420,7 @@ function App() {
 
       {currentPage === 'stack' && (
         <>
-          <StackBg />
+          {!isLite && <StackBg />}
           <div className={`relative z-10 w-full flex flex-col ${exitFx}`}>
             <FrontendDev /> <BackendDev /> <DatabasesDev /> <DevOpsDev /> <ApiIntegrationDev /> <PromoStackOne /> <PromoStackTwo /> 
           </div>
@@ -373,7 +434,7 @@ function App() {
 
       {currentPage === 'about' && (
         <>
-          <AboutBg />
+          {!isLite && <AboutBg />}
           <div className={`relative z-10 w-full flex flex-col ${exitFx}`}>
             <AboutSectionOne /> <AboutSectionTwo /> <AboutSectionThree /> <AboutSectionFour /> <AboutSectionFive /> <AboutSectionSix onNavigateContact={handleNavigateToContact} />
           </div>
@@ -387,7 +448,7 @@ function App() {
 
       {(currentPage === 'contact' || isContactClosing) && (
         <>
-          <ContactBg key={contactInstanceKey} isClosing={isContactClosing} />
+          {!isLite && <ContactBg key={contactInstanceKey} isClosing={isContactClosing} />}
           <div className={`relative z-10 w-full flex flex-col ${exitFx}`}>
             <ContactSection isClosing={isContactClosing} onReviewsClick={handleContactReviewsPreview} />
           </div>
@@ -396,10 +457,14 @@ function App() {
 
       {currentPage === 'reviews' && (
         <>
-          <SceneErrorBoundary>
-            <ReviewsBg onImpact={() => setReviewsImpacted(true)} />
-          </SceneErrorBoundary>
-          <CustomCursor />
+          {!isLite && (
+            <>
+              <SceneErrorBoundary>
+                <ReviewsBg onImpact={() => setReviewsImpacted(true)} />
+              </SceneErrorBoundary>
+              <CustomCursor />
+            </>
+          )}
           <div className={`relative z-10 w-full flex flex-col ${exitFx}`}>
             <ReviewsSection isClosing={isExiting} revealed={reviewsImpacted} />
           </div>
@@ -407,6 +472,7 @@ function App() {
       )}
 
     </div>
+    </ModeProvider>
   );
 }
 

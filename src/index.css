@@ -139,3 +139,41 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   backface-visibility: visible;
   will-change: transform;
 }
+/* ─── Фон lite-режима (без 3D) ────────────────────────────────────────────
+   Только CSS: медленно плывущие световые пятна, дрейфующая сетка и
+   мерцающие точки. Никакого WebGL — режим рассчитан на слабые устройства. */
+@keyframes aurora-drift-a {
+  0%, 100% { transform: translate3d(-8%, -6%, 0) scale(1); }
+  33%      { transform: translate3d(10%, 6%, 0) scale(1.18); }
+  66%      { transform: translate3d(4%, -10%, 0) scale(0.92); }
+}
+
+@keyframes aurora-drift-b {
+  0%, 100% { transform: translate3d(6%, 8%, 0) scale(1.1); }
+  50%      { transform: translate3d(-10%, -8%, 0) scale(0.88); }
+}
+
+@keyframes aurora-drift-c {
+  0%, 100% { transform: translate3d(0, 10%, 0) scale(0.95); }
+  50%      { transform: translate3d(-6%, -6%, 0) scale(1.22); }
+}
+
+.animate-aurora-a { animation: aurora-drift-a 26s ease-in-out infinite; }
+.animate-aurora-b { animation: aurora-drift-b 34s ease-in-out infinite; }
+.animate-aurora-c { animation: aurora-drift-c 30s ease-in-out infinite; }
+
+/* Медленный дрейф сетки — даёт ощущение глубины без частиц */
+@keyframes grid-pan {
+  from { background-position: 0 0; }
+  to   { background-position: 55px 55px; }
+}
+
+.animate-grid-pan { animation: grid-pan 14s linear infinite; }
+
+/* Мерцание звёздных точек */
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.15; }
+  50%      { opacity: 0.9; }
+}
+
+.animate-star { animation: star-twinkle 4s ease-in-out infinite; }

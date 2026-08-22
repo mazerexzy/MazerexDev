@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useT, splitLines } from '../i18n/useT';
+import { scrollAnim } from '../utils/sectionAnim';
+import { useIsLite } from '../context/ModeContext';
 
 const DevOpsStack = () => {
+    const isLite = useIsLite();
     const t = useT();
     const [viewState, setViewState] = useState<'hidden-bottom' | 'visible' | 'hidden-top'>('hidden-bottom');
     const sectionRef = useRef<HTMLElement>(null);
@@ -29,6 +32,9 @@ const DevOpsStack = () => {
     }, []);
 
     const getAnimClasses = (delayClass = '') => {
+        // Без моделей за текстом нет 3D-сцены, поэтому прилёт на 8rem с блюром
+        // выглядит резко. Берём мягкую подачу как на About.
+        if (isLite) return `${scrollAnim(viewState)} ${delayClass}`;
         if (viewState === 'visible') return `opacity-100 blur-0 translate-y-0 ${delayClass}`;
         if (viewState === 'hidden-bottom') return `opacity-0 blur-md translate-y-32 ${delayClass}`;
         if (viewState === 'hidden-top') return `opacity-0 blur-md -translate-y-32 ${delayClass}`;

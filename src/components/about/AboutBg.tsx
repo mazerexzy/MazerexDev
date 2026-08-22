@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Environment, Float, useGLTF, Clone, Preload } from '@react-three/drei';
+import { Environment, Float, useGLTF, Clone } from '@react-three/drei';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import * as THREE from 'three';
 
@@ -8,6 +8,7 @@ import skyPath from '../../assets/models/Sky.glb?url';
 import ghostPath from '../../assets/models/gostly.glb?url'; 
 import NeonBat from './NeonBat';
 import quakePath from '../../assets/sounds/quake.mp3?url';
+import nightHdr from '../../assets/hdri/dikhololo_night_1k.hdr?url';
 import ShockwaveDistortion from '../effects/ShockwaveDistortion';
 import WarmUpCompile from '../effects/WarmUpCompile';
 import { playSfx } from '../../utils/sfx';
@@ -263,7 +264,15 @@ function NeonChest({ position, scale = 1, rotation = [0, 0, 0] }: { position: [n
 const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const sinEaseInOut = (t: number) => (1 - Math.cos(Math.PI * t)) / 2;
 
-function AboutScene({ scrollProgress, mouse, active, onImpact }: { scrollProgress: number, mouse: any, active: boolean, onImpact: () => void }) {
+// Черновые векторы: раньше в useFrame создавалось по 4 Vector3 на кадр
+// (~240 в секунду) — лишний мусор для сборщика прямо во время анимации.
+// Значения из них везде копируются (copy/lerp), ссылки наружу не уходят.
+const _targetCam = new THREE.Vector3();
+const _camVel = new THREE.Vector3();
+const _back = new THREE.Vector3();
+const _lerpCam = new THREE.Vector3();
+
+function AboutScene({ scrollRef, mouseRef, active, onImpact }: { scrollRef: React.MutableRefObject<number>, mouseRef: React.MutableRefObject<{ x: number, y: number }>, active: boolean, onImpact: () => void }) {
     const { camera } = useThree();
     const lookAtTarget = useRef(new THREE.Vector3(0, 0, 0));
     const impactSent = useRef(false);
@@ -314,6 +323,8 @@ function AboutScene({ scrollProgress, mouse, active, onImpact }: { scrollProgres
 
     useFrame((state, delta) => {
         const t = state.clock.getElapsedTime();
+        const mouse = mouseRef.current;
+        const scrollProgress = scrollRef.current;
         const rawSp = THREE.MathUtils.clamp(scrollProgress, 0, 5); 
 
         // Интро-время идёт только после готовности шейдеров — до этого камера
@@ -382,14 +393,14 @@ function AboutScene({ scrollProgress, mouse, active, onImpact }: { scrollProgres
             isShakingIntro = true;
         }
 
-        const baseTargetCamPos = new THREE.Vector3(baseCamX, baseCamY, baseCamZ + introZoomZ);
+        const baseTargetCamPos = _targetCam.set(baseCamX, baseCamY, baseCamZ + introZoomZ);
 
         if (starsStaticRef.current) {
             starsStaticRef.current.rotation.y -= 0.01 * delta;
             starsStaticRef.current.rotation.z -= 0.005 * delta;
         }
 
-        const rawCamVelocity = new THREE.Vector3().subVectors(baseTargetCamPos, prevTargetCamPos.current);
+        const rawCamVelocity = _camVel.subVectors(baseTargetCamPos, prevTargetCamPos.current);
         if (rawCamVelocity.length() > 2) rawCamVelocity.set(0, 0, 0); 
         prevTargetCamPos.current.copy(baseTargetCamPos);
         smoothedWarpVel.current.lerp(rawCamVelocity, 0.03); 
@@ -413,7 +424,8 @@ function AboutScene({ scrollProgress, mouse, active, onImpact }: { scrollProgres
 
         const mouseDelta = Math.abs(mouse.x - prevMouse.current.x) + Math.abs(mouse.y - prevMouse.current.y);
         const scrollDelta = Math.abs(scrollProgress - prevScroll.current);
-        prevMouse.current = mouse;
+        prevMouse.current.x = mouse.x;
+        prevMouse.current.y = mouse.y;
         prevScroll.current = scrollProgress;
 
         if (mouseDelta > 0.0001 || scrollDelta > 0.0001 || lt < 3.0) { 
@@ -486,7 +498,7 @@ function AboutScene({ scrollProgress, mouse, active, onImpact }: { scrollProgres
             const p = Math.max(0, (t - warpStart.current) / ABOUT_WARP_DURATION);
             const eased = p * p * p;
 
-            const back = new THREE.Vector3()
+            const back = _back
                 .subVectors(warpFrom.current, lookAtTarget.current)
                 .normalize();
             camera.position.copy(warpFrom.current).addScaledVector(back, eased * ABOUT_WARP_DISTANCE);
@@ -494,7 +506,7 @@ function AboutScene({ scrollProgress, mouse, active, onImpact }: { scrollProgres
             return;
         }
 
-        camera.position.lerp(new THREE.Vector3(finalCamX, finalCamY, finalCamZ), 0.025);
+        camera.position.lerp(_lerpCam.set(finalCamX, finalCamY, finalCamZ), 0.025);
 
         if (isShakingIntro) {
             const shakeProgress = (lt - 1.5) / 0.5; 
@@ -723,20 +735,21 @@ function AboutScene({ scrollProgress, mouse, active, onImpact }: { scrollProgres
 }
 
 const AboutBg = () => {
-    const [scrollProgress, setScrollProgress] = useState(0);
-    const [mouse, setMouse] = useState({ x: 0, y: 0 });
+    // Скролл и мышь — в ref, а не в состоянии: setState на каждое движение мыши
+    // перерисовывал всю сцену (47 мешей, 41 Float, 15 источников света).
+    // Читаются только внутри useFrame, так что картинка не меняется.
+    const scrollRef = useRef(0);
+    const mouseRef = useRef({ x: 0, y: 0 });
     const [ready, setReady] = useState(false);          // шейдеры скомпилированы
     const [impactFired, setImpactFired] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
-            setScrollProgress(window.scrollY / window.innerHeight);
+            scrollRef.current = window.scrollY / window.innerHeight;
         };
         const handleMouseMove = (e: MouseEvent) => {
-            setMouse({
-                x: (e.clientX / window.innerWidth) * 2 - 1,
-                y: -(e.clientY / window.innerHeight) * 2 + 1
-            });
+            mouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseRef.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
         };
 
         window.addEventListener('scroll', handleScroll);
@@ -754,12 +767,13 @@ const AboutBg = () => {
         <div className="fixed inset-0 z-0 w-full h-full bg-[#130b2e] overflow-hidden pointer-events-none">
             <Canvas dpr={[1, 1.5]} gl={{ powerPreference: 'high-performance', antialias: true }} camera={{ position: [0, 1, 18], fov: 45 }}>
                 <ambientLight intensity={0.4} />
-                <Environment preset="night" />
-                <AboutScene scrollProgress={scrollProgress} mouse={mouse} active={ready} onImpact={() => setImpactFired(true)} />
+                {/* Свой файл вместо preset: preset тянет 1.7 МБ HDR с raw.githack.com
+                    при каждом монтаже — замер показал до 1.5 с прямо в переходе. */}
+                <Environment files={nightHdr} />
+                <AboutScene scrollRef={scrollRef} mouseRef={mouseRef} active={ready} onImpact={() => setImpactFired(true)} />
                 {/* Ударная волна — триггерится ровно в момент интро-тряски (см. impactFired) */}
                 <ShockwaveDistortion trigger={impactFired} />
                 <WarmUpCompile onReady={() => setReady(true)} />
-                <Preload all />
             </Canvas>
         </div>
     );

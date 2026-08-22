@@ -1,10 +1,12 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Environment, Preload } from '@react-three/drei';
+import { Environment } from '@react-three/drei';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import GalaxyPhone, { type GalaxyPhoneHandle } from './GalaxyPhone';
 import quakePath from '../../assets/sounds/quake.mp3';
+import nightHdr from '../../assets/hdri/dikhololo_night_1k.hdr?url';
 import ShockwaveDistortion from '../effects/ShockwaveDistortion';
+import WarmUpCompile from '../effects/WarmUpCompile';
 import { playSfx } from '../../utils/sfx';
 
 const INTRO_WARP_DURATION = 1.3; // сек — искажение объектива быстро уходит, тормозя к концу
@@ -64,7 +66,7 @@ function GlowOrbs() {
     );
 }
 
-function Scene({ mouse, isMobile, phoneRef, active, isClosing }: { mouse: { x: number; y: number }; isMobile: boolean; phoneRef: React.RefObject<GalaxyPhoneHandle | null>; active: boolean; isClosing: boolean }) {
+function Scene({ mouseRef, isMobile, phoneRef, active, isClosing }: { mouseRef: React.MutableRefObject<{ x: number; y: number }>; isMobile: boolean; phoneRef: React.RefObject<GalaxyPhoneHandle | null>; active: boolean; isClosing: boolean }) {
     const { camera } = useThree() as { camera: THREE.PerspectiveCamera };
     const phoneGroupRef = useRef<THREE.Group>(null);
     const closingStart = useRef<number | null>(null);
@@ -84,8 +86,8 @@ function Scene({ mouse, isMobile, phoneRef, active, isClosing }: { mouse: { x: n
         // Пока идут анимации (интро до PARALLAX_START или уход) — параллакса нет,
         // цель = центр (0,0); включается плавно и с задержкой только после.
         const parallaxActive = !isClosing && t > PARALLAX_START;
-        const targetX = parallaxActive ? mouse.x * PARALLAX_STRENGTH_X : 0;
-        const targetY = parallaxActive ? mouse.y * PARALLAX_STRENGTH_Y : 0;
+        const targetX = parallaxActive ? mouseRef.current.x * PARALLAX_STRENGTH_X : 0;
+        const targetY = parallaxActive ? mouseRef.current.y * PARALLAX_STRENGTH_Y : 0;
         baseCam.current.x = THREE.MathUtils.lerp(baseCam.current.x, targetX, PARALLAX_LERP);
         baseCam.current.y = THREE.MathUtils.lerp(baseCam.current.y, targetY, PARALLAX_LERP);
 
@@ -165,17 +167,16 @@ interface ContactBgProps {
 }
 
 const ContactBg = ({ isClosing = false }: ContactBgProps) => {
-    const [mouse, setMouse] = useState({ x: 0, y: 0 });
+    // Мышь в ref: setState на каждое движение перерисовывал всю сцену с телефоном.
+    const mouseRef = useRef({ x: 0, y: 0 });
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [revealed, setRevealed] = useState(false);
     const phoneRef = useRef<GalaxyPhoneHandle>(null);
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
-            setMouse({
-                x: (e.clientX / window.innerWidth) * 2 - 1,
-                y: -(e.clientY / window.innerHeight) * 2 + 1,
-            });
+            mouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseRef.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
         };
         const handleResize = () => setIsMobile(window.innerWidth < 768);
 
@@ -209,11 +210,13 @@ const ContactBg = ({ isClosing = false }: ContactBgProps) => {
     return (
         <div className="fixed inset-0 z-0 w-full h-full bg-[#0c0620] overflow-hidden pointer-events-none">
             <Canvas dpr={[1, 1.5]} gl={{ powerPreference: 'high-performance', antialias: true }} camera={{ position: [0, 0, BASE_CAM_Z], fov: WARP_FOV }}>
-                <Environment preset="night" />
-                <Scene mouse={mouse} isMobile={isMobile} phoneRef={phoneRef} active={revealed} isClosing={isClosing} />
+                <Environment files={nightHdr} />
+                <Scene mouseRef={mouseRef} isMobile={isMobile} phoneRef={phoneRef} active={revealed} isClosing={isClosing} />
                 {/* Ударная волна — синхронно с тряской */}
                 <ShockwaveDistortion startAt={INTRO_WARP_DURATION} />
-                <Preload all />
+                {/* Прогрев вместо <Preload all />: тот делал синхронную компиляцию
+                    и 6 полных рендеров сцены через CubeCamera прямо в useLayoutEffect. */}
+                <WarmUpCompile onReady={() => {}} />
             </Canvas>
         </div>
     );

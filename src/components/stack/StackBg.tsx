@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Environment, Float, useGLTF, useAnimations, Preload } from '@react-three/drei';
+import { Environment, Float, useGLTF, useAnimations } from '@react-three/drei';
 import { useEffect, useState, useRef } from 'react';
 import * as THREE from 'three';
 
@@ -10,7 +10,8 @@ import serverPath from '../../assets/models/server.glb?url';
 import databasesPath from '../../assets/models/databases.glb?url';
 import devopsPath from '../../assets/models/devops.glb?url'; 
 import apiPath from '../../assets/models/ApiIntegration.glb?url'; 
-import quakePath from '../../assets/sounds/quake.mp3'; 
+import quakePath from '../../assets/sounds/quake.mp3';
+import cityHdr from '../../assets/hdri/potsdamer_platz_1k.hdr?url'; 
 import ShockwaveDistortion from '../effects/ShockwaveDistortion';
 import WarmUpCompile from '../effects/WarmUpCompile';
 import { playSfx } from '../../utils/sfx';
@@ -107,7 +108,9 @@ function FloatingTechParticles() {
     );
 }
 
-function AnimatedScene({ phase, scrollProgress }: { phase: string, scrollProgress: number }) {
+const _pulseVec = new THREE.Vector3();
+
+function AnimatedScene({ phase, scrollRef }: { phase: string, scrollRef: React.MutableRefObject<number> }) {
     const parentRef = useRef<THREE.Group>(null);
     const laptopRef = useRef<THREE.Group>(null);
     const serverRef = useRef<THREE.Group>(null);
@@ -124,7 +127,7 @@ function AnimatedScene({ phase, scrollProgress }: { phase: string, scrollProgres
 
     useFrame((state) => {
         const t = state.clock.getElapsedTime();
-        smoothProgress.current = THREE.MathUtils.lerp(smoothProgress.current, scrollProgress, 0.05);
+        smoothProgress.current = THREE.MathUtils.lerp(smoothProgress.current, scrollRef.current, 0.05);
         
         const sp = smoothProgress.current; 
         
@@ -156,7 +159,8 @@ function AnimatedScene({ phase, scrollProgress }: { phase: string, scrollProgres
             if (phase === 'idle') {
                 const pulse = 1 + Math.sin(t * 1.5) * 0.01;
                 const finalScale = pulse * shrinkFactor;
-                parentRef.current.scale.lerp(new THREE.Vector3(finalScale, finalScale, finalScale), 0.1);
+                _pulseVec.set(finalScale, finalScale, finalScale);
+                parentRef.current.scale.lerp(_pulseVec, 0.1);
             }
         }
 
@@ -224,7 +228,7 @@ function AnimatedScene({ phase, scrollProgress }: { phase: string, scrollProgres
     );
 }
 
-function SceneWrapper({ mouse, phase, shakeIntensity, setShakeIntensity, scrollProgress, isMobile }: any) {
+function SceneWrapper({ mouseRef, phase, shakeRef, scrollRef, isMobile }: any) {
     const rootRef = useRef<THREE.Group>(null);
     const { camera } = useThree();
     
@@ -235,10 +239,11 @@ function SceneWrapper({ mouse, phase, shakeIntensity, setShakeIntensity, scrollP
     useFrame((state) => {
         if (!rootRef.current) return;
         
-        if (shakeIntensity > 0.01) {
-            rootRef.current.position.x = (Math.random() - 0.5) * shakeIntensity;
-            rootRef.current.position.y = (Math.random() - 0.5) * shakeIntensity;
-            setShakeIntensity(THREE.MathUtils.lerp(shakeIntensity, 0, 0.05));
+        const shake = shakeRef.current;
+        if (shake > 0.01) {
+            rootRef.current.position.x = (Math.random() - 0.5) * shake;
+            rootRef.current.position.y = (Math.random() - 0.5) * shake;
+            shakeRef.current = THREE.MathUtils.lerp(shake, 0, 0.05);
         } else {
             rootRef.current.position.x = 0;
             rootRef.current.position.y = 0;
@@ -269,13 +274,13 @@ function SceneWrapper({ mouse, phase, shakeIntensity, setShakeIntensity, scrollP
             return;
         }
 
-        const flyProgress = THREE.MathUtils.clamp((scrollProgress - 4) / 2, 0, 1);
+        const flyProgress = THREE.MathUtils.clamp((scrollRef.current - 4) / 2, 0, 1);
 
         // Параллакс: слабый truck (сдвиг и на камеру, И на точку взгляда, чтобы
         // сцена не вращалась) и только в состоянии покоя (idle) — во время
         // варпа/слайда/варп-аута параллакса нет.
-        const paraX = phase === 'idle' ? mouse.x * 0.22 : 0;
-        const paraY = phase === 'idle' ? mouse.y * 0.12 : 0;
+        const paraX = phase === 'idle' ? mouseRef.current.x * 0.22 : 0;
+        const paraY = phase === 'idle' ? mouseRef.current.y * 0.12 : 0;
 
         let targetCamX = THREE.MathUtils.lerp(0, isMobile ? 0 : 7.5, flyProgress) + paraX;
         let targetCamY = THREE.MathUtils.lerp(1, isMobile ? -1.5 : -0.2, flyProgress) + paraY;
@@ -300,17 +305,21 @@ function SceneWrapper({ mouse, phase, shakeIntensity, setShakeIntensity, scrollP
         <group ref={rootRef}>
             <SpaceFireBackground phase={phase} isMobile={isMobile} />
             <group position={isMobile ? [0, -1.5, -2] : [-2.5, 0, 0]} scale={isMobile ? 0.75 : 1}>
-                <AnimatedScene phase={phase} scrollProgress={scrollProgress} />
+                <AnimatedScene phase={phase} scrollRef={scrollRef} />
             </group>
         </group>
     );
 }
 
 const StackBg = () => {
-    const [mouse, setMouse] = useState({ x: 0, y: 0 });
+    // Мышь, скролл и тряска живут в ref, а не в useState. Это не косметика:
+    // каждый setState перерисовывал всё дерево сцены (модели, лампы, Float),
+    // то есть на каждое движение мыши и каждый кадр тряски. Значения читаются
+    // только внутри useFrame, поэтому на картинку переход на ref не влияет.
+    const mouseRef = useRef({ x: 0, y: 0 });
+    const scrollRef = useRef(0);
+    const shakeRef = useRef(0);
     const [phase, setPhase] = useState<'bg-warp' | 'impact' | 'sliding' | 'idle' | 'warp-out'>('bg-warp');
-    const [shakeIntensity, setShakeIntensity] = useState(0);
-    const [scrollProgress, setScrollProgress] = useState(0);
     const [ready, setReady] = useState(false);      // шейдеры скомпилированы
     const [impactFired, setImpactFired] = useState(false);
 
@@ -320,13 +329,11 @@ const StackBg = () => {
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
         const handleMouseMove = (e: MouseEvent) => {
-            setMouse({
-                x: (e.clientX / window.innerWidth) * 2 - 1,
-                y: -(e.clientY / window.innerHeight) * 2 + 1
-            });
+            mouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseRef.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
         };
         const handleScroll = () => {
-            setScrollProgress(Math.max(0, window.scrollY / window.innerHeight));
+            scrollRef.current = Math.max(0, window.scrollY / window.innerHeight);
         };
         const handleWarpOut = () => setPhase('warp-out');
 
@@ -348,7 +355,7 @@ const StackBg = () => {
         if (!ready) return;
         const t1 = setTimeout(() => {
             setPhase('impact');
-            setShakeIntensity(2.0);
+            shakeRef.current = 2.0;
             setImpactFired(true); // синхронно триггерим ударную волну
             playSfx(quakePath, 0.8);
         }, 700);
@@ -364,12 +371,13 @@ const StackBg = () => {
         <div className="fixed inset-0 z-0 w-full h-full bg-[#0a0510] overflow-hidden">
             <Canvas dpr={[1, 1.5]} gl={{ powerPreference: 'high-performance', antialias: true }} camera={{ position: [0, 1, 9], fov: 45 }}>
                 <ambientLight intensity={0.3} />
-                <Environment preset="city" />
-                <SceneWrapper mouse={mouse} phase={phase} shakeIntensity={shakeIntensity} setShakeIntensity={setShakeIntensity} scrollProgress={scrollProgress} isMobile={isMobile} />
+                {/* Свой файл вместо preset: preset тянет 1.5 МБ HDR с raw.githack.com
+                    при каждом монтаже страницы — это ложилось прямо в переход. */}
+                <Environment files={cityHdr} />
+                <SceneWrapper mouseRef={mouseRef} phase={phase} shakeRef={shakeRef} scrollRef={scrollRef} isMobile={isMobile} />
                 {/* Ударная волна — триггерится ровно в момент удара (см. impactFired) */}
                 <ShockwaveDistortion trigger={impactFired} />
                 <WarmUpCompile onReady={() => setReady(true)} />
-                <Preload all />
             </Canvas>
         </div>
     );

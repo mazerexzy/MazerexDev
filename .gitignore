@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.vercel
+.env*
+
+# Оригиналы моделей до пересжатия текстур (локальный бэкап)
+_backup_models/

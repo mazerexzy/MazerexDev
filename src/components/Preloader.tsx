@@ -64,7 +64,10 @@ const Preloader = ({ onStartTransition, onComplete, progress }: { onStartTransit
 
             <div className="z-10 flex items-center justify-center">
                 {showLoader ? (
-                    <div className={`flex flex-col items-center transition-all duration-500 ease-in-out ${phase === 'zooming' ? 'scale-[1.4] opacity-0' : 'scale-100 opacity-100'}`}>
+                    /* Вход — тот же pop-in, что и у кнопки «Enter»: прилетает уменьшением
+                       с 1.5 до 1, подхватывая разлёт экрана выбора режима. В фазе zooming
+                       класс снимается, иначе анимация (forwards) перебьёт transform у transition. */
+                    <div className={`flex flex-col items-center transition-all duration-500 ease-in-out ${phase === 'zooming' ? 'scale-[1.4] opacity-0' : 'scale-100 opacity-100 animate-pop-in'}`}>
 
                         {/* Кольцо + логотип */}
                         <div className="relative w-[210px] h-[210px] md:w-[250px] md:h-[250px] flex items-center justify-center">

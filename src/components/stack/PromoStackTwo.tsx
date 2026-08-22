@@ -3,8 +3,11 @@ import hoverSound from '../../assets/sounds/hover.mp3';
 import clickSound from "../../assets/sounds/click.mp3";
 import { useSound } from 'use-sound';
 import { useT } from '../../i18n/useT';
+import { scrollAnim } from '../../utils/sectionAnim';
+import { useIsLite } from '../../context/ModeContext';
 
 const PromoStackTwo = () => {
+    const isLite = useIsLite();
     const t = useT();
     const [textState, setTextState] = useState<'hidden-top' | 'hidden-bottom' | 'visible'>('hidden-bottom');
     const [isExiting, setIsExiting] = useState(false); 
@@ -51,7 +54,8 @@ const PromoStackTwo = () => {
 
             {/* 🔥 Теперь текст просто стильно падает вниз и растворяется */}
             <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none px-4 transition-all ease-in-out 
-                ${isExiting ? 'opacity-0 translate-y-10 duration-500' : 
+                ${isExiting ? 'opacity-0 translate-y-10 duration-500' :
+                  isLite ? scrollAnim(textState) :
                   textState === 'visible'
                     ? 'opacity-100 translate-y-0 blur-0 duration-[1200ms] delay-[500ms]'
                     : textState === 'hidden-top'
