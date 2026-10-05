@@ -8,7 +8,8 @@
 ![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?logo=framer&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)
 
-Моё портфолио: https://mazerex-dev.vercel.app
+Моё портфолио: https://www.mazerex.fun
+
 
 Я Марк, фуллстек разработчик, делаю сайты и телеграм ботов. Сайт собран как одна большая 3D сцена: планета на фоне, у каждой секции свои эффекты, а на странице отзывов падают метеориты и под курсором трескается земля.
 
